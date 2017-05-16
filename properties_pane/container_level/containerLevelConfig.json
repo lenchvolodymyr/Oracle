@@ -1,0 +1,24 @@
+[
+	{
+		"modeName": "Details",
+		"structure": [
+			{
+				"fieldName": "Description",
+				"fieldKeyword": "description",
+				"shouldValidate": false,
+				"fieldTooltip": "description",
+				"fieldType": "details",
+				"template": "textarea"
+			},
+			{
+				"fieldName": "Comments",
+				"fieldKeyword": "comments",
+				"shouldValidate": false,
+				"fieldTooltip": "comments",
+				"fieldType": "details",
+				"template": "textarea"
+			}
+		],
+		"containerLevelKeys": ["ID"]
+	}
+]

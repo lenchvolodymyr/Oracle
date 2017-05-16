@@ -1,0 +1,22 @@
+{
+	"name": "Oracle",
+	"version": "0.1.0",
+	"publisher": "hackolade",
+	"engines": {
+		"hackolade": "1.6.x",
+		"hackoladePlugin": "0.1.0"
+	},
+	"contributes": {
+		"target": {
+			"applicationTarget": "ORACLE",
+			"title": "Oracle 12c w/ JSON",
+			"versions": [
+				"v12.1.0.2",
+				"v12.2.x"
+			]
+		},
+		"features": {
+			"nestedCollections": false
+		}
+	}
+}

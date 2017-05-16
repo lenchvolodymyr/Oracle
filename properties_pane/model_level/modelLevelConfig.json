@@ -1,0 +1,37 @@
+[
+	{
+		"modeName": "Details",
+		"structure": [
+			{
+				"fieldName": "DB vendor",
+				"fieldKeyword": "dbVendor",
+				"shouldValidate": false,
+				"fieldTooltip": "db vendor",
+				"fieldType": "select",
+				"options": [
+					"Oracle"
+				],
+				"disabledOption": true
+			},
+			{
+				"fieldName": "DB version",
+				"fieldKeyword": "dbVersion",
+				"shouldValidate": false,
+				"fieldTooltip": "db version",
+				"fieldType": "select",
+				"options": [
+					"v12.1.0.2",
+					"v12.2.x"
+				]
+			},
+			{
+				"fieldName": "Comments",
+				"fieldKeyword": "comments",
+				"shouldValidate": false,
+				"fieldTooltip": "comments",
+				"fieldType": "details",
+				"template": "textarea"
+			}
+		]
+	}
+]

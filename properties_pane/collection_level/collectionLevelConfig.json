@@ -1,0 +1,23 @@
+[
+	{
+		"modeName": "Details",
+		"structure": [
+			{
+				"fieldName": "Comments",
+				"fieldKeyword": "comments",
+				"shouldValidate": false,
+				"fieldTooltip": "comments",
+				"fieldType": "details",
+				"template": "textarea",
+				"valueType": "string"
+			},
+			{
+				"fieldName": "Label",
+				"fieldKeyword": "label",
+				"shouldValidate": false,
+				"fieldType": "text",
+				"valueType": "string"
+			}
+		]
+	}
+]

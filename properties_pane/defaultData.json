@@ -1,0 +1,34 @@
+{
+	"model": {
+		"databaseName": "New model",
+		"dbVersion": "v12.2.x",
+		"dbVendor": "Oracle"
+	},
+	"container": {
+		"name": "New schema"
+	},
+	"collection": {
+		"collectionName": "New collection",
+		"collectionUsers": [],
+		"indexes": [],
+		"collation": {}
+	},
+	"field": {
+		"name": "New field"
+	},
+	"patternField": {
+		"name": "^New Pattern Field$"
+	},
+	"multipleField": {
+		"primaryKey": false
+	},
+	"subschema": {},
+	"arrayItem": {},
+	"choice": {},
+	"relationship": {},
+	"user": {},
+	"view": {
+		"viewOn": "",
+		"pipeline": ""
+	}
+}

@@ -1,0 +1,23 @@
+{
+	"string": {
+		"abbr": "<str>"
+	},
+	"list": {
+		"abbr": "<arr>"
+	},
+	"number": {
+		"abbr": "<num>"
+	},
+	"bool": {
+		"abbr": "<bool>"
+	},
+	"null": {
+		"abbr": "<null>"
+	},
+	"bytes": {
+		"abbr": "<byt>"
+	},
+	"map": {
+		"abbr": "<doc>"
+	}
+}

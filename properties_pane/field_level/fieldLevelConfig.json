@@ -1,0 +1,35 @@
+{
+	"modeName": "JsonDetails",
+	"structure": {
+		"string": "string",
+		"number": [
+			"name",
+			"sampleName",
+			"schemaId",
+			"type",
+			"description",
+			"primaryKey",
+			"dependencies",
+			"required",
+			"foreignCollection",
+			"foreignField",
+			"relationshipType",
+			"default",
+			"unit",
+			"minimum",
+			"exclusiveMinimum",
+			"maximum",
+			"exclusiveMaximum",
+			"multipleOf",
+			"divisibleBy",
+			"enum",
+			"sample",
+			"comments"
+		],
+		"bool": "boolean",
+		"document": "document",
+		"array": "array",
+		"bytes": "binary",
+		"null": "null"
+	}
+}
