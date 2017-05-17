@@ -9,6 +9,11 @@
 				"fieldTooltip": "description",
 				"fieldType": "details",
 				"template": "textarea"
+			},{
+				"fieldName": "Primary Key",
+				"fieldKeyword": "PK",
+				"shouldValidate": false,
+				"fieldType": "text"
 			},
 			{
 				"fieldName": "Comments",
@@ -19,6 +24,6 @@
 				"template": "textarea"
 			}
 		],
-		"containerLevelKeys": ["ID"]
+		"containerLevelKeys": ["PK"]
 	}
 ]
