@@ -19,5 +19,18 @@
 				"valueType": "string"
 			}
 		]
+	},	{
+		"modeName": "Indexes",
+		"structure": [
+			{
+				"fieldName": "Comments",
+				"fieldKeyword": "comments",
+				"shouldValidate": false,
+				"fieldTooltip": "comments",
+				"fieldType": "details",
+				"template": "textarea",
+				"valueType": "string"
+			}
+		]
 	}
 ]

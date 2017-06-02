@@ -1,22 +1,26 @@
 {
-	"name": "Oracle",
-	"version": "0.1.0",
-	"publisher": "hackolade",
-	"engines": {
-		"hackolade": "1.6.x",
-		"hackoladePlugin": "0.1.0"
-	},
-	"contributes": {
-		"target": {
-			"applicationTarget": "ORACLE",
-			"title": "Oracle 12c w/ JSON",
-			"versions": [
-				"v12.1.0.2",
-				"v12.2.x"
-			]
-		},
-		"features": {
-			"nestedCollections": false
-		}
-	}
+    "name": "Oracle",
+    "version": "0.0.3",
+    "versionDate": "2017-05-20",
+    "author": "hackolade",
+    "engines": {
+        "hackolade": "1.6.x",
+        "hackoladePlugin": "1.0.0"
+    },
+    "contributes": {
+        "target": {
+            "applicationTarget": "ORACLE",
+            "title": "Oracle 12c w/ JSON",
+            "versions": [
+                "v12.1",
+                "v12.2"
+            ]
+        },
+        "features": {
+            "nestedCollections": false
+        }
+    },
+    "description": "Hackolade plugin for Oracle 12c with JSON support",
+    "icon_url": "C:\\Users\\Pascal\\.hackolade\\plugins\\Oracle\\logo.jpg",
+    "disabled": false
 }

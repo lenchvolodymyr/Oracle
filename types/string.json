@@ -1,21 +1,21 @@
 {
-	"name": "bool",
-	"erdAbbreviation": "<bool>",
-	"dtdAbbreviation": "{0/1}",
-	"parentType": "boolean",
-	"sample": true,
+	"name": "string",
+	"erdAbbreviation": "<str>",
+	"dtdAbbreviation": "{ABC}",
 	"useSample": true,
 	"defaultValues": {
-		"type": "boolean",
-		"childType": "bool",
+		"type": "string",
+		"minLength": "",
+		"maxLength": "",
+		"pattern": "",
 		"default": "",
-		"enum": [],
 		"primaryKey": false,
 		"relationshipType": "",
 		"parentRelationship": "",
 		"childRelationships": [],
 		"foreignCollection": "",
 		"foreignField": [],
+		"enum": [],
 		"sample": ""
 	}
 }

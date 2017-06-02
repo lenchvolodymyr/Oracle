@@ -1,6 +1,23 @@
 {
 	"name": "list",
+	"erdAbbreviation": "<list>",
+	"dtdAbbreviation": "[...]",
 	"parentType": "array",
 	"sample": ["sample"],
-	"useSample": true
+	"useSample": true,
+	"defaultValues": {
+		"type": "array",
+		"childType": "list",
+		"properties": [],
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"additionalItems": true,
+		"minItems": "",
+		"maxItems": "",
+		"uniqueItems": false
+	}
 }

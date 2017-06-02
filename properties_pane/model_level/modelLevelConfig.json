@@ -20,8 +20,8 @@
 				"fieldTooltip": "db version",
 				"fieldType": "select",
 				"options": [
-					"v12.1.0.2",
-					"v12.2.x"
+					"v12.1",
+					"v12.2"
 				]
 			},
 			{

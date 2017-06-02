@@ -1,11 +1,43 @@
 {
 	"name": "number",
+	"erdAbbreviation": "<num>",
+	"dtdAbbreviation": "{123}",
 	"parentType": "numeric",
 	"sample": 15,
 	"useSample": true,
-	"mode": {
-		"int": 12,
-		"long": 15,
-		"double": 32.02
+	"mode": [
+		{
+			"name": "int",
+			"parentType": "integer32",
+			"sample": 12
+		},{
+			"name": "long",
+			"parentType": "double",
+			"sample": 15
+		},{
+			"name": "double",
+			"sample": 32.02
+		}
+	],
+	"defaultValues": {
+		"type": "numeric",
+		"childType": "number",
+		"unit": "",
+		"minimum": "",
+		"exclusiveMinimum": false,
+		"maximum": "",
+		"exclusiveMaximum": false,
+		"multipleOf": "",
+		"divisibleBy": "",
+		"default": "",
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"enum": [],
+		"mode": "",
+		"sample": ""
 	}
 }

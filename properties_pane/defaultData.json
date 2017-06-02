@@ -1,7 +1,7 @@
 {
 	"model": {
 		"databaseName": "New model",
-		"dbVersion": "v12.2.x",
+		"dbVersion": "v12.2",
 		"dbVendor": "Oracle"
 	},
 	"container": {
