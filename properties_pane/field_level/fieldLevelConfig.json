@@ -1,5 +1,5 @@
 {
-	"modeName": "JsonDetails",
+	"lowerTab": "JsonDetails",
 	"structure": {
 		"string": [
 			"name",
@@ -21,10 +21,10 @@
 			"sample",
 			"comments",
 			{
-				"fieldName": "Other Attribute",
-				"fieldKeyword": "otherAttrib",
+				"propertyName": "Other Attribute",
+				"propertyKeyword": "otherAttrib",
 				"shouldValidate": false,
-				"fieldType": "text",
+				"propertyType": "text",
 				"arrayItemDisabled": true,
 				"enableForReference": true,
 				"disabledOnCondition": [{
@@ -51,10 +51,10 @@
 			"default",
 			"unit",
 			{
-				"fieldName": "Mode",
-				"fieldKeyword": "mode",
+				"propertyName": "Mode",
+				"propertyKeyword": "mode",
 				"shouldValidate": false,
-				"fieldType": "select",
+				"propertyType": "select",
 				"options": [
 					"",
 					"int",

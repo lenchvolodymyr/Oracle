@@ -1,35 +1,35 @@
 [
 	{
-		"modeName": "Details",
+		"lowerTab": "Details",
 		"structure": [
 			{
-				"fieldName": "DB vendor",
-				"fieldKeyword": "dbVendor",
+				"propertyName": "DB vendor",
+				"propertyKeyword": "dbVendor",
 				"shouldValidate": false,
-				"fieldTooltip": "db vendor",
-				"fieldType": "select",
+				"propertyTooltip": "db vendor",
+				"propertyType": "select",
 				"options": [
 					"Oracle"
 				],
 				"disabledOption": true
 			},
 			{
-				"fieldName": "DB version",
-				"fieldKeyword": "dbVersion",
+				"propertyName": "DB version",
+				"propertyKeyword": "dbVersion",
 				"shouldValidate": false,
-				"fieldTooltip": "db version",
-				"fieldType": "select",
+				"propertyTooltip": "db version",
+				"propertyType": "select",
 				"options": [
 					"v12.1",
 					"v12.2"
 				]
 			},
 			{
-				"fieldName": "Comments",
-				"fieldKeyword": "comments",
+				"propertyName": "Comments",
+				"propertyKeyword": "comments",
 				"shouldValidate": false,
-				"fieldTooltip": "comments",
-				"fieldType": "details",
+				"propertyTooltip": "comments",
+				"propertyType": "details",
 				"template": "textarea"
 			}
 		]

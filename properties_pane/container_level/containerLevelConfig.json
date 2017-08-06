@@ -1,28 +1,28 @@
 [
 	{
-		"modeName": "Details",
+		"lowerTab": "Details",
 		"structure": [
 			{
-				"fieldName": "Description",
-				"fieldKeyword": "description",
+				"propertyName": "Description",
+				"propertyKeyword": "description",
 				"shouldValidate": false,
-				"fieldTooltip": "description",
-				"fieldType": "details",
+				"propertyTooltip": "description",
+				"propertyType": "details",
 				"template": "textarea"
 			},
 			{
-				"fieldName": "Comments",
-				"fieldKeyword": "comments",
+				"propertyName": "Comments",
+				"propertyKeyword": "comments",
 				"shouldValidate": false,
-				"fieldTooltip": "comments",
-				"fieldType": "details",
+				"propertyTooltip": "comments",
+				"propertyType": "details",
 				"template": "textarea"
 			},
 			{
-				"fieldName": "Primary Key",
-				"fieldKeyword": "PK",
+				"propertyName": "Primary Key",
+				"propertyKeyword": "PK",
 				"shouldValidate": false,
-				"fieldType": "text"
+				"propertyType": "text"
 			}
 		],
 		"containerLevelKeys": []

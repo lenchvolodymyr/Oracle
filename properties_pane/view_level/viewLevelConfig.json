@@ -1,13 +1,13 @@
 [
 	{
-		"modeName": "Details",
+		"lowerTab": "Details",
 		"structure": [
 			{
-				"fieldName": "Comments",
-				"fieldKeyword": "comments",
+				"propertyName": "Comments",
+				"propertyKeyword": "comments",
 				"shouldValidate": false,
-				"fieldTooltip": "comments",
-				"fieldType": "details",
+				"propertyTooltip": "comments",
+				"propertyType": "details",
 				"template": "textarea"
 			}
 		]

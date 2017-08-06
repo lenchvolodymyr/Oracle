@@ -1,33 +1,33 @@
 [
 	{
-		"modeName": "Details",
+		"lowerTab": "Details",
 		"structure": [
 			{
-				"fieldName": "Comments",
-				"fieldKeyword": "comments",
+				"propertyName": "Comments",
+				"propertyKeyword": "comments",
 				"shouldValidate": false,
-				"fieldTooltip": "comments",
-				"fieldType": "details",
+				"propertyTooltip": "comments",
+				"propertyType": "details",
 				"template": "textarea",
 				"valueType": "string"
 			},
 			{
-				"fieldName": "Label",
-				"fieldKeyword": "label",
+				"propertyName": "Label",
+				"propertyKeyword": "label",
 				"shouldValidate": false,
-				"fieldType": "text",
+				"propertyType": "text",
 				"valueType": "string"
 			}
 		]
 	},	{
-		"modeName": "Indexes",
+		"lowerTab": "Indexes",
 		"structure": [
 			{
-				"fieldName": "Comments",
-				"fieldKeyword": "comments",
+				"propertyName": "Comments",
+				"propertyKeyword": "comments",
 				"shouldValidate": false,
-				"fieldTooltip": "comments",
-				"fieldType": "details",
+				"propertyTooltip": "comments",
+				"propertyType": "details",
 				"template": "textarea",
 				"valueType": "string"
 			}
