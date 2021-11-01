@@ -1,0 +1,56 @@
+{
+	"name": "lobs",
+	"erdAbbreviation": "<lob>",
+	"dtdAbbreviation": "{LOB}",
+	"parentType": "binary",
+	"useSample": false,
+	"hiddenOnEntity": "view",
+	"jsonType": {
+		"order": 1,
+		"jsonRoot": true,
+		"source": {
+			"type": "or",
+			"values": [
+				{
+					"key": "mode",
+					"value": "blob"
+				},
+				{
+					"key": "mode",
+					"value": "clob"
+				}
+			]
+		}
+	},
+	"defaultValues": {
+		"primaryKey": false,
+		"mode": "blob"
+	},
+	"subtypes": {
+		"object": {
+			"parentType": "jsonObject",
+			"childValueType": [
+				"jsonString",
+				"jsonNumber",
+				"jsonObject",
+				"jsonArray",
+				"jsonBoolean",
+				"jsonNull"
+			]
+		},
+		"array": {
+			"parentType": "jsonArray",
+			"childValueType": [
+				"jsonString",
+				"jsonNumber",
+				"jsonObject",
+				"jsonArray",
+				"jsonBoolean",
+				"jsonNull"
+			]
+		},
+		"string": {
+			"parentType": "string"
+		}
+	}
+}

@@ -1,0 +1,67 @@
+{
+	"name": "char",
+	"erdAbbreviation": "<chr>",
+	"dtdAbbreviation": "{ABC}",
+	"parentType": "string",
+	"useSample": true,
+	"default": true,
+	"hiddenOnEntity": "view",
+	"jsonType": {
+		"order": 1,
+		"jsonRoot": true,
+		"source": {
+			"type": "or",
+			"values": [
+				{
+					"key": "mode",
+					"value": "nvarchar2"
+				}
+			]
+		}
+	},
+	"defaultValues": {
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"default": "",
+		"minLength": "",
+		"maxLength": "",
+		"pattern": "",
+		"enum": [],
+		"sample":"",
+		"comments":"",
+		"mode": "nvarchar2",
+		"length": 20,
+		"subtype": "string"
+	},
+	"subtypes": {
+		"object": {
+			"parentType": "jsonObject",
+			"childValueType": [
+				"jsonString",
+				"jsonNumber",
+				"jsonObject",
+				"jsonArray",
+				"jsonBoolean",
+				"jsonNull"
+			]
+		},
+		"array": {
+			"parentType": "jsonArray",
+			"childValueType": [
+				"jsonString",
+				"jsonNumber",
+				"jsonObject",
+				"jsonArray",
+				"jsonBoolean",
+				"jsonNull"
+			]
+		},
+		"string": {
+			"parentType": "string"
+		}
+	}
+}

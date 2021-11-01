@@ -1,14 +1,71 @@
+/*
+* Copyright © 2016-2017 by IntegrIT S.A. dba Hackolade.  All rights reserved.
+*
+* The copyright to the computer software herein is the property of IntegrIT S.A.
+* The software may be used and/or copied only with the written permission of 
+* IntegrIT S.A. or in accordance with the terms and conditions stipulated in 
+* the agreement/contract under which the software has been supplied. 
+*/
+
 [
 	{
 		"lowerTab": "Details",
 		"structure": [
 			{
 				"propertyName": "Comments",
-				"propertyKeyword": "comments",
+				"propertyKeyword": "description",
 				"shouldValidate": false,
 				"propertyTooltip": "comments",
 				"propertyType": "details",
 				"template": "textarea"
+			},
+			{
+				"propertyName": "Or replace",
+				"propertyKeyword": "or_replace",
+				"propertyTooltip": "To re-create the view if it already exists. You can use this clause to change the definition of an existing view without dropping, re-creating, and regranting object privileges previously granted on it.",
+				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Force",
+				"propertyKeyword": "force",
+				"propertyTooltip": "To create the view regardless of whether the base tables of the view or the referenced object types exist or the owner of the schema containing the view has privileges on them.",
+				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Editionable",
+				"propertyKeyword": "editionable",
+				"propertyTooltip": "To specify whether the view becomes an editioned or noneditioned object if editioning is enabled for the schema object type VIEW in schema.",
+				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Editioning",
+				"propertyKeyword": "editioning",
+				"propertyTooltip": "A single-table view that selects all rows from the base table and displays a subset of the base table columns. ",
+				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Select Statement",
+				"propertyKeyword": "selectStatement",
+				"propertyType": "details",
+				"propertyTooltip": "select statement. To reference on partitioned table you shoud use ${tableName} template",
+				"template": "textarea",
+				"markdown": false
+			},
+			{
+				"propertyName": "Remarks",
+				"propertyKeyword": "comments",
+				"shouldValidate": false,
+				"propertyTooltip": "remarks",
+				"propertyType": "details",
+				"template": "textarea"
+			},
+			{
+				"propertyKeyword": "pipeline",
+				"hidden": true
+			},
+			{
+				"propertyKeyword": "viewOn",
+				"hidden": true
 			}
 		]
 	}

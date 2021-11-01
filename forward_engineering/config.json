@@ -1,0 +1,10 @@
+{
+	"type": "ddl",
+	"ddlType": "oracle",
+	"namePrefix": "Oracle",
+	"level": {
+		"container": true,
+		"entity": true,
+		"view": true
+	}
+}

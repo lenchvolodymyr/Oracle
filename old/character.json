@@ -1,0 +1,27 @@
+{
+	"name": "character",
+	"erdAbbreviation": "<char>",
+	"dtdAbbreviation": "{ABC}",
+	"parentType": "string",
+	"useSample": true,
+	"default": true,
+	"hiddenOnEntity": "view",
+	"defaultValues": {
+		"primaryKey": false,
+		"relationshipType": "",
+		"parentRelationship": "",
+		"childRelationships": [],
+		"foreignCollection": "",
+		"foreignField": [],
+		"default": "",
+		"minLength": "",
+		"maxLength": "",
+		"pattern": "",
+		"enum": [],
+		"sample":"",
+		"comments":"",
+		"mode": "character",
+		"length": 20,
+		"subtype": "string"
+	}
+}
