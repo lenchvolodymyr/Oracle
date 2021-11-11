@@ -14,8 +14,7 @@
 		"comments":"",
 		"pattern":"",
 		"format": "",
-		"mode": "date",
-		"scale": 7
+		"mode": "date"
 	},
 	"descriptor": [{
 		"schema": {
@@ -24,60 +23,39 @@
 		"format": "YYYY-MM-DD"
 	}, {
 		"schema": {
-			"mode": "time"
-		},
-		"format": "hh:mm:ss"
-	}, {
-		"schema": {
-			"mode": "time",
-			"fractSecPrecision": 3
-		},
-		"format": "hh:mm:ss.nnn"
-	}, {
-		"schema": {
-			"mode": "time",
-			"fractSecPrecision": 6
-		},
-		"format": "hh:mm:ss.nnnnnn"
-	}, {
-		"schema": {
-			"mode": "time",
-			"fractSecPrecision": 9
-		},
-		"format": "hh:mm:ss.nnnnnnnnn"
-	}, {
-		"schema": {
-			"mode": "datetime2"
+			"mode": "timestamp"
 		},
 		"format": "YYYY-MM-DD hh:mm:ss"
 	}, {
 		"schema": {
-			"mode": "datetime2",
+			"mode": "timestamp",
 			"fractSecPrecision": 3
 		},
 		"format": "YYYY-MM-DD hh:mm:ss.nnn"
 	}, {
 		"schema": {
-			"mode": "datetime2",
+			"mode": "timestamp",
 			"fractSecPrecision": 6
 		},
 		"format": "YYYY-MM-DD hh:mm:ss.nnnnnn"
 	}, {
 		"schema": {
-			"mode": "datetime2",
+			"mode": "timestamp",
 			"fractSecPrecision": 9
 		},
 		"format": "YYYY-MM-DD hh:mm:ss.nnnnnnnnn"
 	}, {
 		"schema": {
-			"mode": "datetimeoffset",
-			"fractSecPrecision": 3
+			"mode": "timestamp",
+			"fractSecPrecision": 3,
+			"withTimeZone": true
 		},
 		"format": "YYYY-MM-DD hh:mm:ss.nnnZ"
 	}, {
 		"schema": {
-			"mode": "datetimeoffset",
-			"fractSecPrecision": 6
+			"mode": "timestamp",
+			"fractSecPrecision": 6,
+			"withTimeZone": true
 		},
 		"format": "YYYY-MM-DD hh:mm:ss.nnnnnnZ"
 	}]}
