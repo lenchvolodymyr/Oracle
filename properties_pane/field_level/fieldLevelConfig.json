@@ -1712,6 +1712,13 @@ making sure that you maintain a proper JSON format.
 				"enableForReference": true,
 				"propertyType": "checkbox"
 			},
+			{
+				"propertyName": "subtype",
+				"propertyKeyword": "subtype",
+				"propertyTooltip": "needs for configuration of json types",
+				"propertyType": "text",
+				"hidden": true
+			},
 			"required",
 			"sample",
 			{
