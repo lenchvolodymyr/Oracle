@@ -2,8 +2,13 @@
 	"name": "json",
 	"erdAbbreviation": "<json>",
 	"dtdAbbreviation": "{...}",
-	"parentType": "document",
+	"parentType": "jsonObject",
 	"default": true,
+	"jsonType": {
+		"order": 1,
+		"jsonRoot": true,
+		"source": true
+	},
 	"defaultValues": {
 		"primaryKey": false,
 		"relationshipType": "",
@@ -17,6 +22,20 @@
 		"minProperties": "",
 		"maxProperties": "",
 		"additionalProperties": false,
-		"enum": []
+		"enum": [],
+		"subtype": "json"
+	},
+	"subtypes": {
+		"json": {
+			"parentType": "jsonObject",
+			"childValueType": [
+				"jsonString",
+				"jsonNumber",
+				"jsonObject",
+				"jsonArray",
+				"jsonBoolean",
+				"jsonNull"
+			]
+		}
 	}
 }
