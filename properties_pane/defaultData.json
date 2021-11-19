@@ -5,49 +5,15 @@
 		"dbVendor": "Oracle"
 	},
 	"container": {
-		"name": "New schema",
-		"indexes": []
+		"name": "New schema"
 	},
 	"collection": {
-		"collectionName": "New table",
-		"memory_optimized": false,
-		"collectionUsers": [],
-		"collation": {},
-		"chkConstr": {
-			"constrCheck": true,
-			"constrEnforceUpserts": true,
-			"constrEnforceReplication": true
-		},
-		"Indxs": {
-			"indxType": "Index",
-			"ALLOW_ROW_LOCKS": true,
-			"ALLOW_PAGE_LOCKS": true
-		}
+		"collectionName": "New table"
 	},
 	"field": {
 		"name": "New column",
 		"primaryKey": false,
-		"unique": false,
-		"yearPrecision": 2,
-		"dayPrecision": 2,
-		"fractSecPrecision": 6,
-		"hasMaxLength": {
-			"valueDependencies": [
-				{
-					"value": true,
-					"dependency": {
-						"type": "or",
-						"values": [{
-							"key": "subtype",
-							"value": "object"
-						}, {
-							"key": "subtype",
-							"value": "array"
-						}]
-					}
-				}
-			]
-		}
+		"unique": false
 	},
 	"patternField": {
 		"name": "^[a-zA-Z0-9_.-]+$"
@@ -66,27 +32,5 @@
 	"view": {
 		"viewOn": "",
 		"pipeline": ""
-	},
-	"UDFs": {
-		"name": "New UDF",
-		"udfID": "",
-		"udfDescription": "",
-		"udfFunction": "",
-		"udfComments": ""
-	},
-	"UDAs": {
-		"name": "New UDA",
-		"udfID": "",
-		"udfDescription": "",
-		"udfFunction": "",
-		"udfComments": ""
-	},
-	"SecIdxs": {
-		"name": "New Secondary Index",
-		"SecIndxKey": "",
-		"SecIndxID": "",
-		"SecIndxDescription": "",
-		"SecIndxFunction": "",
-		"SecIndxComments": ""
 	}
 }

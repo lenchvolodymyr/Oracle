@@ -301,7 +301,6 @@ making sure that you maintain a proper JSON format.
 					{
 						"propertyName": "Access parameters",
 						"propertyKeyword": "access_driver_type",
-						"propertyTooltip": "Select from list of options",
 						"propertyTooltip": "Lets you assign values to the parameters of the specific access driver for this external table.",
 						"propertyType": "select",
 						"defaultValue": "Opaque Format Spec",
@@ -842,7 +841,7 @@ making sure that you maintain a proper JSON format.
 							"key": "partitionBy",
 							"value": ["system"]
 						}
-					},
+					}
 				]
 			},
 			{
@@ -931,6 +930,13 @@ making sure that you maintain a proper JSON format.
 					"propertyType": "text"
 				},
 				{
+					"propertyName": "Activated",
+					"propertyKeyword": "isActivated",
+					"propertyTooltip": "Deactivated item will be not included in FE script",
+					"propertyType": "checkbox",
+					"defaultValue": true
+				},
+				{
 					"propertyName": "Type",
 					"propertyKeyword": "indxType",
 					"propertyType": "select",
@@ -1002,6 +1008,7 @@ making sure that you maintain a proper JSON format.
 					"propertyType": "select",
 					"defaultValue": "logging",
 					"options": [
+						"",
 						"logging",
 						"nologging",
 						"filesystem_like_logging"
