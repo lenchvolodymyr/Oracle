@@ -9,6 +9,18 @@
 		"jsonRoot": true,
 		"source": true
 	},
+	"dependency": {
+		"level": "model",
+		"key": "dbVersion",
+		"value": "21c"
+	},
+	"compatibleWith": {
+		"type": "lobs",
+		"parentType": "jsonObject",
+		"mode": "blob",
+		"subtype": "object",
+		"properties": []
+	},
 	"defaultValues": {
 		"primaryKey": false,
 		"relationshipType": "",
