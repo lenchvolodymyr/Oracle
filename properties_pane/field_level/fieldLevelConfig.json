@@ -244,10 +244,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "JSON Type",
 				"propertyKeyword": "physicalType",
 				"propertyType": "select",
-				"dependency": {
-					"key": "mode",
-					"value": "mode"
-				}
+				"hidden": true
 			},
 			{
 				"propertyName": "JSON Types",
@@ -1633,16 +1630,14 @@ making sure that you maintain a proper JSON format.
 					"bfile"
 				],
 				"data": "options",
-				"valueType": "string"
+				"valueType": "string",
+				"cleanDependency": true
 			},
 			{
 				"propertyName": "JSON Type",
 				"propertyKeyword": "physicalType",
 				"propertyType": "select",
-				"dependency": {
-					"key": "mode",
-					"value": "mode"
-				}
+				"hidden": true
 			},
 			{
 				"propertyName": "JSON Types",
@@ -1717,6 +1712,12 @@ making sure that you maintain a proper JSON format.
 				"propertyKeyword": "subtype",
 				"propertyTooltip": "needs for configuration of json types",
 				"propertyType": "text",
+				"hidden": true
+			},
+			{
+				"propertyName": "JSON Type",
+				"propertyKeyword": "physicalType",
+				"propertyType": "select",
 				"hidden": true
 			},
 			"required",

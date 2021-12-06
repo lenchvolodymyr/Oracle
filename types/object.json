@@ -1,0 +1,24 @@
+{
+	"name": "object",
+	"parentType": "document",
+	"structureType": true,
+	"defaultValues": {
+		"subtype": "object",
+		"properties": []
+	},
+	"subtypes": {
+		"object": {
+			"childValueType": [
+				"char",
+				"number",
+				"binary",
+				"datetime",
+				"json",
+				"lobs",
+				"rowid",
+				"reference",
+				"multiple"
+			]
+		}
+	}
+}
