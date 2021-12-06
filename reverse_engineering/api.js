@@ -63,7 +63,6 @@ module.exports = {
 	},
 
 	async getDbCollectionsData(collectionsInfo, logger, callback, app) {
-		debugger;
 		try {
 			logger.log('info', collectionsInfo, 'Retrieving schema', collectionsInfo.hiddenKeys);
 			initDependencies(app);
@@ -72,13 +71,12 @@ module.exports = {
 			const collections = data.collections;
 			const dataBaseNames = data.dataBaseNames;
 			const entitiesPromises = await dataBaseNames.reduce(async (packagesPromise, schema) => {
-				debugger;
 				const packages = await packagesPromise;
 				const entities = oracleHelper.splitEntityNames(collections[schema]);
 
 				const containerData = await oracleHelper.getContainerData(schema);
 
-				const tablesPackages = entities.tables.map(async table => {
+				const tablesPackages = await Promise.all(entities.tables.map(async table => {
 					const fullTableName = oracleHelper.getFullEntityName(schema, table);
 					logger.progress({ message: `Start getting data from table`, containerName: schema, entityName: table });
 					const ddl = await oracleHelper.getDDL(table);
@@ -86,7 +84,7 @@ module.exports = {
 
 					logger.progress({ message: `Fetching record for JSON schema inference`, containerName: schema, entityName: table });
 
-					const { documents, jsonSchema } = await oracleHelper.getJsonSchema(logger, getCount(quantity, data.recordSamplingSettings), fullTableName);
+					const { documents, jsonSchema } = await oracleHelper.getJsonSchema(logger, getCount(quantity, collectionsInfo.recordSamplingSettings), fullTableName);
 					const entityData = await oracleHelper.getEntityData(fullTableName);
 
 					logger.progress({ message: `Schema inference`, containerName: schema, entityName: table });
@@ -103,7 +101,7 @@ module.exports = {
 						views: [],
 						ddl: {
 							script: ddl,
-							type: 'snowflake'
+							type: 'oracle'
 						},
 						emptyBucket: false,
 						validation: {
@@ -115,12 +113,12 @@ module.exports = {
 							...containerData
 						}
 					};
-				});
+				}));
 
 				const views = await Promise.all(entities.views.map(async view => {
 					const fullViewName = oracleHelper.getFullEntityName(schema, view);
 					logger.progress({ message: `Start getting data from view`, containerName: schema, entityName: view });
-					const ddl = await oracleHelper.getViewDDL(fullViewName);
+					const ddl = await oracleHelper.getViewDDL(view);
 					const viewData = await oracleHelper.getViewData(fullViewName);
 
 					logger.progress({ message: `Data retrieved successfully`, containerName: schema, entityName: view });
@@ -130,7 +128,7 @@ module.exports = {
 						data: viewData,
 						ddl: {
 							script: ddl,
-							type: 'snowflake'
+							type: 'oracle'
 						}
 					};
 				}));
@@ -140,17 +138,17 @@ module.exports = {
 				}
 
 				const viewPackage = Promise.resolve({
-					dbName: schemaName,
+					dbName: schema,
 					entityLevel: {},
 					views,
 					emptyBucket: false,
 					bucketInfo: {
 						indexes: [],
-						database,
+						database: schema,
 						...containerData
 					}
 				});
-
+				debugger;
 				return [ ...packages, ...tablesPackages, viewPackage ];
 			}, Promise.resolve([]));
 

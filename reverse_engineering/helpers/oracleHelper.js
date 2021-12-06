@@ -121,7 +121,6 @@ const getDDL = async tableName => {
 	try {
         //TODO what if external table?
 		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME) FROM ALL_TABLES WHERE TABLE_NAME='${tableName}'`);
-		debugger;
 		return await _.first(_.first(queryResult)).getData();
 	} catch (err) {
 		return '';
@@ -160,7 +159,7 @@ const getEntityData = async fullName => {
 const handleComplexTypesDocuments = (jsonSchema, documents) => {
 	try {
         //TODO implement handling
-		return {};
+		return [];
 	} catch (err) {
 		return documents;
 	}
@@ -170,7 +169,7 @@ const getViewDDL = async viewName => {
 	try {
         //TODO what if mat. view?
 		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('VIEW', VIEW_NAME) FROM ALL_VIEWS WHERE VIEW_NAME='${viewName}'`);
-		return await _.first(queryResult).getData();
+		return await _.first(_.first(queryResult)).getData();
 	} catch (err) {
 		return '';
 	}
