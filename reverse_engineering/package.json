@@ -4,7 +4,7 @@
   "description": "",
   "author": "Hackolade",
   "dependencies": {
-    "node-oracledb": "^4.2.0"
+    "oracledb": "^5.3.0"
   },
   "installed": true
 }
