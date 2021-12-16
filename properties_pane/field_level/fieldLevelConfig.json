@@ -1708,10 +1708,11 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "checkbox"
 			},
 			{
-				"propertyName": "subtype",
+				"propertyName": "JSON Types",
 				"propertyKeyword": "subtype",
 				"propertyTooltip": "needs for configuration of json types",
-				"propertyType": "text",
+				"propertyType": "select",
+				"options": ["json"],
 				"hidden": true
 			},
 			{
