@@ -20,7 +20,6 @@ module.exports = {
 	},
 
 	async disconnect(connectionInfo, logger, callback) {
-		logInfo('Disconnecting from database', connectionInfo, logger);
 		try {
 			await oracleHelper.disconnect();
 			callback(null);
@@ -69,13 +68,14 @@ module.exports = {
 			const data = collectionsInfo.collectionData;
 			const collections = data.collections;
 			const dataBaseNames = data.dataBaseNames;
+			const dbVersion = await oracleHelper.getDbVersion(logger);
 			const entitiesPromises = await dataBaseNames.reduce(async (packagesPromise, schema) => {
 				const packages = await packagesPromise;
 				const entities = oracleHelper.splitEntityNames(collections[schema]);
 
-				const containerData = await oracleHelper.getContainerData(schema);
+				const tablesPackages = await entities.tables.reduce(async (next, table) => {
+					const result = await next;
 
-				const tablesPackages = await Promise.all(entities.tables.map(async table => {
 					const fullTableName = oracleHelper.getFullEntityName(schema, table);
 					logger.progress({ message: `Start getting data from table`, containerName: schema, entityName: table });
 					const ddl = await oracleHelper.getDDL(table);
@@ -92,7 +92,7 @@ module.exports = {
 
 					logger.progress({ message: `Data retrieved successfully`, containerName: schema, entityName: table });
 
-					return {
+					return result.concat({
 						dbName: schema,
 						collectionName: table,
 						entityLevel: entityData,
@@ -109,12 +109,13 @@ module.exports = {
 						bucketInfo: {
 							indexes: [],
 							database: schema,
-							...containerData
 						}
-					};
-				}));
+					});
+				}, Promise.resolve([]));
 
-				const views = await Promise.all(entities.views.map(async view => {
+				const views = await entities.views.reduce(async (next, view) => {
+					const result = await next;
+
 					const fullViewName = oracleHelper.getFullEntityName(schema, view);
 					logger.progress({ message: `Start getting data from view`, containerName: schema, entityName: view });
 					const ddl = await oracleHelper.getViewDDL(view);
@@ -122,15 +123,15 @@ module.exports = {
 
 					logger.progress({ message: `Data retrieved successfully`, containerName: schema, entityName: view });
 
-					return {
+					return result.concat({
 						name: view,
 						data: viewData,
 						ddl: {
 							script: ddl,
 							type: 'oracle'
 						}
-					};
-				}));
+					});
+				}, Promise.resolve([]));
 
 				if (_.isEmpty(views)) {
 					return [...packages, ...tablesPackages];
@@ -144,7 +145,6 @@ module.exports = {
 					bucketInfo: {
 						indexes: [],
 						database: schema,
-						...containerData
 					}
 				});
 
@@ -152,10 +152,10 @@ module.exports = {
 			}, Promise.resolve([]));
 
 			const packages = await Promise.all(entitiesPromises).catch(err => callback(err));
-			callback(null, packages.filter(Boolean));
+			callback(null, packages.filter(Boolean), { version: dbVersion });
 		} catch (error) {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Reverse-engineering process failed');
-			callback({ message: error.message, stack: error.stack })
+			callback({ message: error.message, stack: error.stack });
 		}
 	}
 };

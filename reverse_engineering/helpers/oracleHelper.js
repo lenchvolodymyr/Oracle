@@ -103,21 +103,42 @@ const execute = command => {
 		);
 	});
 };
+
+const getDbVersion = async (logger) => {
+	try {
+		const version = await execute('SELECT VERSION FROM PRODUCT_COMPONENT_VERSION WHERE product LIKE \'Oracle Database%\'');
+
+		logger.log('info', version, 'DB Version');
+
+		if (!version['VERSION']) {
+			return '21c';
+		}
+
+		const v = version['VERSION'].split('.').shift() + 'c';
+		const versions = [
+			"12c",
+			"18c",
+			"19c",
+			"21c"
+		];
+
+		if (!versions.includes(v)) {
+			return '21c';
+		}
+		
+		return v;
+	} catch (e) {
+		logger.log('error', { message: e.message, stack: e.stack }, 'Error of getting DB Version');
+		return '21c';
+	}
+};
+
 const isView = name => name.slice(-4) === ' (v)';
 const splitEntityNames = names => {
 	const namesByCategory = _.partition(names, isView);
 
 	return { views: namesByCategory[0].map(name => name.slice(0, -4)), tables: namesByCategory[1] };
 };
-
-const getContainerData = async schema => {
-	try {
-		//TODO what data need to be returned?
-		return {};
-	} catch (err) {
-		return {};
-	}
-}
 
 const getFullEntityName = (schemaName, tableName) => {
 	return [schemaName, tableName].map(addQuotes).join('.');
@@ -204,7 +225,6 @@ module.exports = {
 	setDependencies,
 	getEntitiesNames,
 	splitEntityNames,
-	getContainerData,
 	getFullEntityName,
 	getDDL,
 	getRowsCount,
@@ -212,5 +232,6 @@ module.exports = {
 	getEntityData,
 	handleComplexTypesDocuments,
 	getViewDDL,
-	getViewData
+	getViewData,
+	getDbVersion,
 };
