@@ -32,31 +32,30 @@ module.exports = {
 	async testConnection(connectionInfo, logger, callback, app) {
 		try {
 			logInfo('Test connection', connectionInfo, logger);
-			await this.connect(connectionInfo, logger, () => {}, app);
+			await this.connect(connectionInfo, logger, () => { }, app);
 			callback(null);
-		} catch(error) {
+		} catch (error) {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Test connection');
 			callback({ message: error.message, stack: error.stack });
 		}
 	},
 
-	getDatabases(connectionInfo, logger, callback, app) {
-		debugger;
-		callback();
-	},
-
-	getDocumentKinds(connectionInfo, logger, callback, app) {
-		debugger;
-		callback();
-	},
-
 	async getDbCollectionsNames(connectionInfo, logger, callback, app) {
 		try {
+			
 			logInfo('Retrieving databases and tables information', connectionInfo, logger);
-			await this.connect(connectionInfo, logger, () => {}, app);
-			const objects = await oracleHelper.getEntitiesNames();
+			await this.connect(connectionInfo, logger, () => { }, app);
+			const objects = await oracleHelper.getEntitiesNames({
+				info: (data) => {
+					logger.log('info', data, 'Retrieving table and view names');
+				},
+				error: (e) => {
+					logger.log('error', { message: e.message, stack: e.stack, error: e }, 'Retrieving databases and tables information');
+				},
+			});
+
 			callback(null, objects);
-		} catch(error) {
+		} catch (error) {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Retrieving databases and tables information');
 			callback({ message: error.message, stack: error.stack });
 		}
@@ -134,7 +133,7 @@ module.exports = {
 				}));
 
 				if (_.isEmpty(views)) {
-					return [ ...packages, ...tablesPackages ];
+					return [...packages, ...tablesPackages];
 				}
 
 				const viewPackage = Promise.resolve({
@@ -148,8 +147,8 @@ module.exports = {
 						...containerData
 					}
 				});
-				debugger;
-				return [ ...packages, ...tablesPackages, viewPackage ];
+
+				return [...packages, ...tablesPackages, viewPackage];
 			}, Promise.resolve([]));
 
 			const packages = await Promise.all(entitiesPromises).catch(err => callback(err));
