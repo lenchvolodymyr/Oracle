@@ -110,11 +110,11 @@ const getDbVersion = async (logger) => {
 
 		logger.log('info', version, 'DB Version');
 
-		if (!version['VERSION']) {
+		if (!version?.[0]?.[0]) {
 			return '21c';
 		}
 
-		const v = version['VERSION'].split('.').shift() + 'c';
+		const v = version[0][0].split('.').shift() + 'c';
 		const versions = [
 			"12c",
 			"18c",
