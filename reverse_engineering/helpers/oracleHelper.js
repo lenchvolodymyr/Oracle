@@ -196,6 +196,10 @@ const readLobs = (record) => {
 			value = await value.getData();
 		}
 
+		if (value instanceof Buffer) {
+			value = value.toString();
+		}
+
 		result[key] = value;
 
 		return result;
