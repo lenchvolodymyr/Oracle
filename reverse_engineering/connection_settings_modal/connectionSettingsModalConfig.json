@@ -112,5 +112,19 @@
 				}
 			}
 		]
+	},
+	{
+		"tab": "Client",
+		"structure": [
+			{
+				"inputLabel": "Client Path",
+				"inputKeyword": "clientPath",
+				"inputType": "text",
+				"inputPlaceholder": "Client Path",
+				"validation": {
+					"regex": "([^\\s])"
+				}
+			}
+		]
 	}
 ]
