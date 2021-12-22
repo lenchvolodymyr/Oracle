@@ -148,10 +148,8 @@ module.exports = {
 						...containerData
 					}
 				});
-				debugger;
 				return [ ...packages, ...tablesPackages, viewPackage ];
 			}, Promise.resolve([]));
-
 			const packages = await Promise.all(entitiesPromises).catch(err => callback(err));
 			callback(null, packages.filter(Boolean));
 		} catch (error) {
