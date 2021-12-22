@@ -141,7 +141,19 @@ making sure that you maintain a proper JSON format.
 					"19c",
 					"21c"
 				],
-				"disabledOption": false
+				"disabledOption": false,
+				"adapters": [
+					{
+						"dependency": {
+							"type": "not",
+							"values": [{
+								"key": "dbVersion",
+								"value": "21c"
+							}]
+						},
+						"adapter": "adaptUnavailableTypes"
+					}
+				]
 			},
 			{
 				"propertyName": "Comments",
