@@ -534,7 +534,7 @@ making sure that you maintain a proper JSON format.
 			},
 			{
 				"propertyName": "Unique key options",
-				"propertyType": "group",
+				"propertyType": "block",
 				"propertyKeyword": "uniqueKeyOptions",
 				"enableForReference": true,
 				"propertyTooltip": "Unique key options",
@@ -1018,7 +1018,7 @@ making sure that you maintain a proper JSON format.
 			},
 			{
 				"propertyName": "Unique key options",
-				"propertyType": "group",
+				"propertyType": "block",
 				"propertyKeyword": "uniqueKeyOptions",
 				"enableForReference": true,
 				"propertyTooltip": "Unique key options",
@@ -1477,7 +1477,7 @@ making sure that you maintain a proper JSON format.
 			},
 			{
 				"propertyName": "Unique key options",
-				"propertyType": "group",
+				"propertyType": "block",
 				"propertyKeyword": "uniqueKeyOptions",
 				"enableForReference": true,
 				"propertyTooltip": "Unique key options",
@@ -2007,7 +2007,7 @@ making sure that you maintain a proper JSON format.
 			},
 			{
 				"propertyName": "Unique key options",
-				"propertyType": "group",
+				"propertyType": "block",
 				"propertyKeyword": "uniqueKeyOptions",
 				"enableForReference": true,
 				"propertyTooltip": "Unique key options",
@@ -2384,7 +2384,7 @@ making sure that you maintain a proper JSON format.
 			},
 			{
 				"propertyName": "Unique key options",
-				"propertyType": "group",
+				"propertyType": "block",
 				"propertyKeyword": "uniqueKeyOptions",
 				"enableForReference": true,
 				"propertyTooltip": "Unique key options",

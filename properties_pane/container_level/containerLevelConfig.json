@@ -142,7 +142,7 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "checkbox"
 			},
 			{
-				"propertyName": "Text area",
+				"propertyName": "Grant statement",
 				"propertyKeyword": "grant_statement",
 				"propertyTooltip": "Use this clause to grant object privileges on objects you own to other users.",
 				"propertyType": "details",
