@@ -6,11 +6,14 @@ const setDependencies = ({ lodash }) => _ = lodash;
 
 let connection;
 
-const connect = async (logger, { host, port, userName, userPassword, databaseName, clientPath }) => {
+const connect = async (logger, { connMethod, authMethod, host, port, userName, userPassword, databaseName, serviceName, clientPath }) => {
 	if (!connection) {
 		oracleDB.initOracleClient({ libDir: clientPath });
 
-		return authByCredentials({ host: `${host}:${port}`, username: userName, password: userPassword, database: databaseName });
+		if (authMethod === 'Username / Password') {
+			const connString = connMethod === 'Wallet' ? serviceName : `${host}:${port}/${databaseName}`;
+			return authByCredentials({ connString, username: userName, password: userPassword });
+		}
 	}
 };
 
@@ -29,12 +32,12 @@ const disconnect = async () => {
 	});
 };
 
-const authByCredentials = ({ host, username, password, database }) => {
+const authByCredentials = ({ connString, username, password }) => {
 	return new Promise((resolve, reject) => {
 		oracleDB.getConnection({
 			username,
 			password,
-			connectString: `${host}/${database}`,
+			connectString: connString,
 		}, (err, conn) => {
 			if (err) {
 				connection = null;

@@ -17,13 +17,29 @@
 				"regex": "([^\\s])"
 			},
 			{
+				"inputLabel": "Connection method",
+				"inputKeyword": "connMethod",
+				"description": "Specify connection method",
+				"inputType": "select",
+				"defaultValue": "Host / Port",
+				"options": [{
+					"value": "Host / Port",
+					"label": "Host / Port"
+				},
+				{
+					"value": "Wallet",
+					"label": "Wallet"
+				}
+				]
+			},
+			{
 				"inputLabel": "Host",
 				"inputKeyword": "host",
 				"description": "Specify host IP address or DNS name of Oracle server",
 				"inputType": "text",
 				"dependency": {
-					"key": "authMethod",
-					"value": "Username / Password"
+					"key": "connMethod",
+					"value": "Host / Port"
 				},
 				"regex": "([^\\s])"
 			},
@@ -34,8 +50,18 @@
 				"inputType": "numeric",
 				"defaultValue": 1521,
 				"dependency": {
-					"key": "authMethod",
-					"value": "Username / Password"
+					"key": "connMethod",
+					"value": "Host / Port"
+				}
+			},
+			{
+				"inputLabel": "Service Name",
+				"inputKeyword": "serviceName",
+				"description": "Specify service name of Oracle Cloud Instance",
+				"inputType": "text",
+				"dependency": {
+					"key": "connMethod",
+					"value": "Wallet"
 				}
 			}
 		]
@@ -43,6 +69,16 @@
 	{
 		"tab": "Authentication",
 		"structure": [
+			{
+				"inputLabel": "Authentication method",
+				"inputKeyword": "authMethod",
+				"inputType": "select",
+				"defaultValue": "Username / Password",
+				"options": [{
+					"value": "Username / Password",
+					"label": "Username / Password"
+				}]
+			},
 			{
 				"inputLabel": "User Name",
 				"inputKeyword": "userName",
