@@ -154,10 +154,8 @@ module.exports = {
 						database: schema,
 					}
 				});
-
-				return [...packages, ...tablesPackages, viewPackage];
+				return [ ...packages, ...tablesPackages, viewPackage ];
 			}, Promise.resolve([]));
-
 			callback(null, packages.filter(Boolean), { version: dbVersion });
 		} catch (error) {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Reverse-engineering process failed');
