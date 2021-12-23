@@ -87,13 +87,15 @@ const getEntitiesNames = async (logger) => {
 	}], []);
 };
 
-const execute = command => {
+const execute = (command, options = {}) => {
 	if (!connection) {
 		return Promise.reject(noConnectionError)
 	}
 	return new Promise((resolve, reject) => {
 		connection.execute(
 			command,
+			{},
+			options,
 			(err, result) => {
 				if (err) {
 					return reject(err);
@@ -155,28 +157,127 @@ const getDDL = async tableName => {
 	try {
 		//TODO what if external table?
 		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME) FROM ALL_TABLES WHERE TABLE_NAME='${tableName}'`);
-		return await _.first(_.first(queryResult)).getData();
+		const ddl = await _.first(_.first(queryResult)).getData();
+
+		if (!/;\s*$/.test(ddl)) {
+			return `${ddl};`;
+		}
+
+		return ddl;
 	} catch (err) {
 		return '';
 	}
 };
 
+const getJsonColumns = async tableName => {
+	const result = await execute(`SELECT * FROM all_tab_columns WHERE TABLE_NAME='${tableName}' AND DATA_TYPE IN ('CLOB', 'BLOB', 'NVARCHAR2', 'JSON')`, {
+		outFormat: oracleDB.OBJECT,
+	});
+
+	return result;
+};
+
 const getRowsCount = async tableName => {
 	try {
-		const queryResult = await execute(`SELECT count(*) AS COUNT FROM ${tableName};`);
+		const queryResult = await execute(`SELECT count(*) AS COUNT FROM ${tableName}`);
 
-		return _.first(queryResult);
-	} catch {
-		return '';
+		return Number(_.first(queryResult.flat()) || 0);
+	} catch (error) {
+		return 0;
 	}
 };
 
-const getJsonSchema = async (logger, limit, tableName) => {
-	//TODO implement json schema retrieval
-	return {
-		jsonSchema: { properties: {} },
-		documents: [],
+const readLobs = (record) => {
+	return Object.keys(record).reduce(async (prev, key) => {
+		const result = await prev;
+		let value = record[key]; 
+		
+		if (value instanceof oracleDB.Lob) {
+			value = await value.getData();
+		}
+
+		if (value instanceof Buffer) {
+			value = value.toString();
+		}
+
+		result[key] = value;
+
+		return result;
+	}, Promise.resolve({}));
+};
+
+const selectRecords = async ({ tableName, limit }) => {
+	const records = await execute(`SELECT * FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
+		outFormat: oracleDB.OBJECT,
+	});
+
+	const result = await records.reduce(async (prev, record) => {
+		const result = await prev;
+		
+		const updatedRecord = await readLobs(record);
+
+		return result.concat(updatedRecord);
+	}, Promise.resolve([]));
+
+	return result;
+};
+
+const getJsonType = (records, columnName) => {
+	return records.reduce((type, record) => {
+		if (type) {
+			return type;
+		}
+		
+		try {
+			const result = JSON.parse(record[columnName]);
+
+			if (Array.isArray(result)) {
+				return 'array';
+			}
+
+			if (result && typeof result === 'object') {
+				return 'object';
+			}
+
+			return type;
+		} catch {
+			return type;
+		}
+	}, '');
+};
+
+const getJsonSchema = async (jsonColumns, records) => {
+	const types = {
+		CLOB: { type: 'lobs', mode: 'clob' },
+		BLOB: { type: 'lobs', mode: 'blob' },
+		NVARCHAR2: { type: 'char', mode: 'nvarchar2' },
+		JSON: { type: 'JSON' }
 	};
+	const properties = jsonColumns.reduce((properties, column) => {
+		const columnName = column['COLUMN_NAME'];
+		const columnType = column['DATA_TYPE'];
+		const schema = types[columnType];
+
+		if (!schema) {
+			return properties;
+		}
+
+		const subtype = getJsonType(records, columnName);
+
+		if (!subtype) {
+			return properties;
+		}
+
+		return {
+			...properties,
+			[columnName]: {
+				...schema,
+				subtype,
+			}
+		};
+	}, {});
+
+	return { properties };
 };
 
 const getEntityData = async fullName => {
@@ -234,4 +335,6 @@ module.exports = {
 	getViewDDL,
 	getViewData,
 	getDbVersion,
+	getJsonColumns,
+	selectRecords,
 };
