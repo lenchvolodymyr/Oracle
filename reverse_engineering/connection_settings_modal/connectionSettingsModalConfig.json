@@ -9,19 +9,6 @@
 				"inputPlaceholder": "Name"
 			},
 			{
-				"inputLabel": "Source",
-				"inputKeyword": "source",
-				"inputType": "select",
-				"defaultValue": "On-premise",
-				"options": [{
-					"value": "On-premise",
-					"label": "On-premise database"
-				},{
-					"value": "azure",
-					"label": "Azure SQL database"
-				}]
-			},
-			{
 				"inputLabel": "Database name",
 				"inputKeyword": "databaseName",
 				"description": "Database name",
@@ -30,22 +17,9 @@
 				"regex": "([^\\s])"
 			},
 			{
-				"inputLabel": "Authentication method",
-				"inputKeyword": "authMethod",
-				"inputType": "select",
-				"defaultValue": "Username / Password",
-				"options": [{
-					"value": "Username / Password",
-					"label": "Username / Password"
-				},{
-					"value": "Connection string",
-					"label": "Connection string"
-				}]
-			},
-			{
 				"inputLabel": "Host",
 				"inputKeyword": "host",
-				"description": "Specify host IP address or DNS name of Microsoft SQL server",
+				"description": "Specify host IP address or DNS name of Oracle server",
 				"inputType": "text",
 				"dependency": {
 					"key": "authMethod",
@@ -56,27 +30,12 @@
 			{
 				"inputLabel": "Port",
 				"inputKeyword": "port",
-				"description": "Specify port number of Microsoft SQL server",
+				"description": "Specify port number of Oracle server",
 				"inputType": "numeric",
-				"defaultValue": 1433,
+				"defaultValue": 1521,
 				"dependency": {
 					"key": "authMethod",
 					"value": "Username / Password"
-				}
-			},
-			{
-				"inputLabel": "Connection string",
-				"inputKeyword": "connectionString",
-				"inputType": "text",
-				"description": "Specify URI or classic connection string",
-				"inputPlaceholder": "mssql://username:password@localhost:1433/database?encrypt=true",
-				"dependency": {
-					"key": "authMethod",
-					"value": "Connection string"
-				},
-				"isHiddenKey": true,
-				"validation": {
-					"regex": "([^\\s])"
 				}
 			}
 		]
@@ -110,6 +69,17 @@
 				"validation": {
 					"regex": "([^\\s])"
 				}
+			}
+		]
+	},
+	{
+		"tab": "Client",
+		"structure": [
+			{
+				"inputLabel": "Client Path",
+				"inputKeyword": "clientPath",
+				"inputType": "text",
+				"inputPlaceholder": "Client Path"
 			}
 		]
 	}
