@@ -6,14 +6,13 @@ const setDependencies = ({ lodash }) => _ = lodash;
 
 let connection;
 
-const connect = async (logger, { connectionMethod, authMethod, host, port, userName, userPassword, databaseName, serviceName, clientPath }) => {
+const connect = async ({ connectionMethod, authMethod, host, port, userName, userPassword, databaseName, serviceName, clientPath, queryRequestTimeout }) => {
 	if (!connection) {
 		oracleDB.initOracleClient({ libDir: clientPath });
 
-		if (authMethod === 'Username / Password') {
-			const connectString = connectionMethod === 'Wallet' ? serviceName : `${host}:${port}/${databaseName}`;
-			return authByCredentials({ connectString, username: userName, password: userPassword });
-		}
+		const connectString = connectionMethod === 'Wallet' ? serviceName : `${host}:${port}/${databaseName}`;
+
+		return authByCredentials({ connectString, username: userName, password: userPassword, queryRequestTimeout });
 	}
 };
 
@@ -32,7 +31,7 @@ const disconnect = async () => {
 	});
 };
 
-const authByCredentials = ({ connectString, username, password }) => {
+const authByCredentials = ({ connectString, username, password, queryRequestTimeout }) => {
 	return new Promise((resolve, reject) => {
 		oracleDB.getConnection({
 			username,
@@ -43,8 +42,13 @@ const authByCredentials = ({ connectString, username, password }) => {
 				connection = null;
 				return reject(err);
 			}
-			connection = conn;
-			resolve();
+			try {
+				conn.callTimeout = Number(queryRequestTimeout || 0);
+				connection = conn;
+				resolve();
+			} catch (err) {
+				reject(err);
+			}
 		});
 	});
 };
@@ -145,20 +149,8 @@ const splitEntityNames = names => {
 	return { views: namesByCategory[0].map(name => name.slice(0, -4)), tables: namesByCategory[1] };
 };
 
-const getFullEntityName = (schemaName, tableName) => {
-	return [schemaName, tableName].map(addQuotes).join('.');
-};
-
-const addQuotes = string => {
-	if (/^\".*\"$/.test(string)) {
-		return string;
-	}
-	return `"${string}""`;
-};
-
-const getDDL = async tableName => {
+const getDDL = async (tableName, logger) => {
 	try {
-		//TODO what if external table?
 		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME) FROM ALL_TABLES WHERE TABLE_NAME='${tableName}'`);
 		const ddl = await _.first(_.first(queryResult)).getData();
 
@@ -168,6 +160,10 @@ const getDDL = async tableName => {
 
 		return ddl;
 	} catch (err) {
+		logger.log('error', {
+			message: 'Cannot get DDL for table: ' + tableName,
+			error: { message: err.message, stack: err.stack, err: _.omit(err, ['message', 'stack']) }
+		}, 'Getting DDL');
 		return '';
 	}
 };
@@ -209,18 +205,22 @@ const readLobs = (record) => {
 	}, Promise.resolve({}));
 };
 
-const selectRecords = async ({ tableName, limit }) => {
-	const records = await execute(`SELECT * FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
-		outFormat: oracleDB.OBJECT,
-	});
-
-	const result = await records.reduce(async (prev, record) => {
+const readRecordsValues = async (records) => {
+	return await records.reduce(async (prev, record) => {
 		const result = await prev;
 		
 		const updatedRecord = await readLobs(record);
 
 		return result.concat(updatedRecord);
 	}, Promise.resolve([]));
+};
+
+const selectRecords = async ({ tableName, limit, jsonColumns }) => {
+	const records = await execute(`SELECT ${jsonColumns.map((c) => c['COLUMN_NAME']).join(', ')} FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
+		outFormat: oracleDB.OBJECT,
+	});
+
+	const result = await readRecordsValues(records);
 
 	return result;
 };
@@ -283,43 +283,33 @@ const getJsonSchema = async (jsonColumns, records) => {
 	return { properties };
 };
 
-const getEntityData = async fullName => {
-	const [schemaName, tableName] = fullName.split('.');
+const getIndexStatements = async ({ table, schema }) => {
+	let primaryKeyConstraints = await execute(`SELECT CONSTRAINT_NAME FROM ALL_CONSTRAINTS WHERE CONSTRAINT_TYPE='P' AND OWNER='${schema}' AND TABLE_NAME='${table}'`);
 
-	try {
-		//TODO implement data retrieval
-		return {};
-	} catch (err) {
-		return {};
+	primaryKeyConstraints = primaryKeyConstraints.flat();
+
+	let indexQuery = `SELECT DBMS_METADATA.GET_DDL('INDEX',u.index_name) AS STATEMENT FROM ALL_INDEXES u WHERE u.TABLE_OWNER='${schema}' AND u.TABLE_NAME='${table}'`;
+
+	if (primaryKeyConstraints.length) {
+		indexQuery += ` AND u.INDEX_NAME NOT IN ('${primaryKeyConstraints.join('\', \'')}')`;
 	}
+	const indexRecords = await execute(indexQuery, { outFormat: oracleDB.OBJECT });
+	const indexStatements = await readRecordsValues(indexRecords)
+
+	return indexStatements.map(s => `${s['STATEMENT']};`);
 };
 
-const handleComplexTypesDocuments = (jsonSchema, documents) => {
+const getViewDDL = async (viewName, logger) => {
 	try {
-		//TODO implement handling
-		return [];
-	} catch (err) {
-		return documents;
-	}
-};
-
-const getViewDDL = async viewName => {
-	try {
-		//TODO what if mat. view?
 		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('VIEW', VIEW_NAME) FROM ALL_VIEWS WHERE VIEW_NAME='${viewName}'`);
+
 		return `${(await _.first(_.first(queryResult)).getData())};`;
 	} catch (err) {
+		logger.log('error', {
+			message: 'Cannot get DDL for view: ' + viewName,
+			error: { message: err.message, stack: err.stack, err: _.omit(err, ['message', 'stack']) }
+		}, 'Getting DDL');
 		return '';
-	}
-};
-
-const getViewData = async fullName => {
-	const [schemaName, viewName] = fullName.split('.');
-
-	try {
-		return {};
-	} catch (err) {
-		return {};
 	}
 };
 
@@ -329,14 +319,11 @@ module.exports = {
 	setDependencies,
 	getEntitiesNames,
 	splitEntityNames,
-	getFullEntityName,
 	getDDL,
 	getRowsCount,
 	getJsonSchema,
-	getEntityData,
-	handleComplexTypesDocuments,
+	getIndexStatements,
 	getViewDDL,
-	getViewData,
 	getDbVersion,
 	getJsonColumns,
 	selectRecords,
