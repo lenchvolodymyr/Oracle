@@ -69,7 +69,7 @@ module.exports = {
 			const collections = data.collections;
 			const dataBaseNames = data.dataBaseNames;
 			const dbVersion = await oracleHelper.getDbVersion(logger);
-			const entitiesPromises = await dataBaseNames.reduce(async (packagesPromise, schema) => {
+			const packages = await dataBaseNames.reduce(async (packagesPromise, schema) => {
 				const packages = await packagesPromise;
 				const entities = oracleHelper.splitEntityNames(collections[schema]);
 
@@ -79,16 +79,23 @@ module.exports = {
 					const fullTableName = oracleHelper.getFullEntityName(schema, table);
 					logger.progress({ message: `Start getting data from table`, containerName: schema, entityName: table });
 					const ddl = await oracleHelper.getDDL(table);
-					const quantity = await oracleHelper.getRowsCount(fullTableName);
+					const jsonColumns =  await oracleHelper.getJsonColumns(table);
+					let documents = [];
+					let jsonSchema = {};
 
-					logger.progress({ message: `Fetching record for JSON schema inference`, containerName: schema, entityName: table });
+					if (jsonColumns.length) {
+						const countOfRecords = await oracleHelper.getRowsCount(table);
+						const quantity = getCount(countOfRecords, collectionsInfo.recordSamplingSettings)
+	
+						logger.progress({ message: `Fetching record for JSON schema inference`, containerName: schema, entityName: table });
 
-					const { documents, jsonSchema } = await oracleHelper.getJsonSchema(logger, getCount(quantity, collectionsInfo.recordSamplingSettings), fullTableName);
+						documents = await oracleHelper.selectRecords({ tableName: table, limit: quantity });
+						jsonSchema = await oracleHelper.getJsonSchema(jsonColumns, documents);
+					} else if (collectionsInfo?.fieldInference?.active === 'field') {
+						documents = await oracleHelper.selectRecords({ tableName: table, limit: 1 });
+					}
+					
 					const entityData = await oracleHelper.getEntityData(fullTableName);
-
-					logger.progress({ message: `Schema inference`, containerName: schema, entityName: table });
-
-					const handledDocuments = oracleHelper.handleComplexTypesDocuments(jsonSchema, documents);
 
 					logger.progress({ message: `Data retrieved successfully`, containerName: schema, entityName: table });
 
@@ -96,7 +103,8 @@ module.exports = {
 						dbName: schema,
 						collectionName: table,
 						entityLevel: entityData,
-						documents: handledDocuments,
+						standardDoc: documents[0],
+						documents: documents,
 						views: [],
 						ddl: {
 							script: ddl,
@@ -104,10 +112,9 @@ module.exports = {
 						},
 						emptyBucket: false,
 						validation: {
-							jsonSchema
+							jsonSchema,
 						},
 						bucketInfo: {
-							indexes: [],
 							database: schema,
 						}
 					});
@@ -149,7 +156,6 @@ module.exports = {
 				});
 				return [ ...packages, ...tablesPackages, viewPackage ];
 			}, Promise.resolve([]));
-			const packages = await Promise.all(entitiesPromises).catch(err => callback(err));
 			callback(null, packages.filter(Boolean), { version: dbVersion });
 		} catch (error) {
 			logger.log('error', { message: error.message, stack: error.stack, error }, 'Reverse-engineering process failed');
@@ -168,9 +174,10 @@ const handleError = (logger, error, cb) => {
 const getCount = (count, recordSamplingSettings) => {
 	const per = recordSamplingSettings.relative.value;
 	const size = (recordSamplingSettings.active === 'absolute')
-		? recordSamplingSettings.absolute.value
+		? Math.min(recordSamplingSettings.absolute.value, count)
 		: Math.round(count / 100 * per);
-	return size;
+
+	return Math.min(size, 50000);
 };
 
 const initDependencies = app => {
