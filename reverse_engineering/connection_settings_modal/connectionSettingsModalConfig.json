@@ -18,7 +18,7 @@
 			},
 			{
 				"inputLabel": "Connection method",
-				"inputKeyword": "connMethod",
+				"inputKeyword": "connectionMethod",
 				"description": "Specify connection method",
 				"inputType": "select",
 				"defaultValue": "Host / Port",
@@ -38,7 +38,7 @@
 				"description": "Specify host IP address or DNS name of Oracle server",
 				"inputType": "text",
 				"dependency": {
-					"key": "connMethod",
+					"key": "connectionMethod",
 					"value": "Host / Port"
 				},
 				"regex": "([^\\s])"
@@ -50,7 +50,7 @@
 				"inputType": "numeric",
 				"defaultValue": 1521,
 				"dependency": {
-					"key": "connMethod",
+					"key": "connectionMethod",
 					"value": "Host / Port"
 				}
 			},
@@ -60,7 +60,7 @@
 				"description": "Specify service name of Oracle Cloud Instance",
 				"inputType": "text",
 				"dependency": {
-					"key": "connMethod",
+					"key": "connectionMethod",
 					"value": "Wallet"
 				}
 			}
