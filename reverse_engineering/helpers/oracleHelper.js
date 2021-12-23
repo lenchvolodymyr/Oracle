@@ -145,10 +145,6 @@ const splitEntityNames = names => {
 	return { views: namesByCategory[0].map(name => name.slice(0, -4)), tables: namesByCategory[1] };
 };
 
-const getFullEntityName = (schemaName, tableName) => {
-	return [schemaName, tableName].map(addQuotes).join('.');
-};
-
 const addQuotes = string => {
 	if (/^\".*\"$/.test(string)) {
 		return string;
@@ -209,18 +205,22 @@ const readLobs = (record) => {
 	}, Promise.resolve({}));
 };
 
-const selectRecords = async ({ tableName, limit }) => {
-	const records = await execute(`SELECT * FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
-		outFormat: oracleDB.OBJECT,
-	});
-
-	const result = await records.reduce(async (prev, record) => {
+const readRecordsValues = async (records) => {
+	return await records.reduce(async (prev, record) => {
 		const result = await prev;
 		
 		const updatedRecord = await readLobs(record);
 
 		return result.concat(updatedRecord);
 	}, Promise.resolve([]));
+};
+
+const selectRecords = async ({ tableName, limit, jsonColumns }) => {
+	const records = await execute(`SELECT ${jsonColumns.map((c) => c['COLUMN_NAME']).join(', ')} FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
+		outFormat: oracleDB.OBJECT,
+	});
+
+	const result = await readRecordsValues(records);
 
 	return result;
 };
@@ -283,15 +283,20 @@ const getJsonSchema = async (jsonColumns, records) => {
 	return { properties };
 };
 
-const getEntityData = async fullName => {
-	const [schemaName, tableName] = fullName.split('.');
+const getIndexStatements = async ({ table, schema }) => {
+	let primaryKeyConstraints = await execute(`SELECT CONSTRAINT_NAME FROM ALL_CONSTRAINTS WHERE CONSTRAINT_TYPE='P' AND OWNER='${schema}' AND TABLE_NAME='${table}'`);
 
-	try {
-		//TODO implement data retrieval
-		return {};
-	} catch (err) {
-		return {};
+	primaryKeyConstraints = primaryKeyConstraints.flat();
+
+	let indexQuery = `SELECT DBMS_METADATA.GET_DDL('INDEX',u.index_name) AS STATEMENT FROM ALL_INDEXES u WHERE u.TABLE_OWNER='${schema}' AND u.TABLE_NAME='${table}'`;
+
+	if (primaryKeyConstraints.length) {
+		indexQuery += ` AND u.INDEX_NAME NOT IN ('${primaryKeyConstraints.join('\', \'')}')`;
 	}
+	const indexRecords = await execute(indexQuery, { outFormat: oracleDB.OBJECT });
+	const indexStatements = await readRecordsValues(indexRecords)
+
+	return indexStatements.map(s => `${s['STATEMENT']};`);
 };
 
 const handleComplexTypesDocuments = (jsonSchema, documents) => {
@@ -329,11 +334,10 @@ module.exports = {
 	setDependencies,
 	getEntitiesNames,
 	splitEntityNames,
-	getFullEntityName,
 	getDDL,
 	getRowsCount,
 	getJsonSchema,
-	getEntityData,
+	getIndexStatements,
 	handleComplexTypesDocuments,
 	getViewDDL,
 	getViewData,
