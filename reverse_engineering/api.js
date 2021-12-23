@@ -11,7 +11,7 @@ module.exports = {
 		logger.clear();
 		logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
 		try {
-			await oracleHelper.connect(logger, connectionInfo);
+			await oracleHelper.connect(connectionInfo);
 			callback();
 		} catch (err) {
 			handleError(logger, err, callback);
@@ -81,7 +81,7 @@ module.exports = {
 					const result = await next;
 
 					progress({ message: `Start getting data from table`, containerName: schema, entityName: table });
-					const ddl = await oracleHelper.getDDL(table);
+					const ddl = await oracleHelper.getDDL(table, logger);
 					const jsonColumns =  await oracleHelper.getJsonColumns(table);
 					let documents = [];
 					let jsonSchema = {};
@@ -123,16 +123,14 @@ module.exports = {
 				const views = await entities.views.reduce(async (next, view) => {
 					const result = await next;
 
-					const fullViewName = oracleHelper.getFullEntityName(schema, view);
 					progress({ message: `Start getting data from view`, containerName: schema, entityName: view });
-					const ddl = await oracleHelper.getViewDDL(view);
-					const viewData = await oracleHelper.getViewData(fullViewName);
+					const ddl = await oracleHelper.getViewDDL(view, logger);
 
 					progress({ message: `Data retrieved successfully`, containerName: schema, entityName: view });
 
 					return result.concat({
 						name: view,
-						data: viewData,
+						data: {},
 						ddl: {
 							script: ddl,
 							type: 'oracle'
