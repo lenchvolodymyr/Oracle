@@ -47,7 +47,7 @@
 				"propertyName": "Select Statement",
 				"propertyKeyword": "selectStatement",
 				"propertyType": "details",
-				"propertyTooltip": "select statement. To reference on partitioned table you shoud use ${tableName} template",
+				"propertyTooltip": "select statement. To reference on partitioned table you should use ${tableName} template",
 				"template": "textarea",
 				"markdown": false
 			},
