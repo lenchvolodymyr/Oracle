@@ -62,9 +62,13 @@ module.exports = {
 
 	async getDbCollectionsData(collectionsInfo, logger, callback, app) {
 		try {
+			const progress = ({ message, containerName = '', entityName = '' }) => {
+				logger.log('info', { message, schema: containerName, table: entityName }, 'Retrieving schema');
+				logger.progress({ message, containerName, entityName });
+			};
 			logger.log('info', collectionsInfo, 'Retrieving schema', collectionsInfo.hiddenKeys);
 			initDependencies(app);
-			logger.progress({ message: 'Start reverse-engineering process', containerName: '', entityName: '' });
+			progress({ message: 'Start reverse-engineering process', containerName: '', entityName: '' });
 			const data = collectionsInfo.collectionData;
 			const collections = data.collections;
 			const dataBaseNames = data.dataBaseNames;
@@ -76,8 +80,7 @@ module.exports = {
 				const tablesPackages = await entities.tables.reduce(async (next, table) => {
 					const result = await next;
 
-					const fullTableName = oracleHelper.getFullEntityName(schema, table);
-					logger.progress({ message: `Start getting data from table`, containerName: schema, entityName: table });
+					progress({ message: `Start getting data from table`, containerName: schema, entityName: table });
 					const ddl = await oracleHelper.getDDL(table);
 					const jsonColumns =  await oracleHelper.getJsonColumns(table);
 					let documents = [];
@@ -87,27 +90,24 @@ module.exports = {
 						const countOfRecords = await oracleHelper.getRowsCount(table);
 						const quantity = getCount(countOfRecords, collectionsInfo.recordSamplingSettings)
 	
-						logger.progress({ message: `Fetching record for JSON schema inference`, containerName: schema, entityName: table });
+						progress({ message: `Fetching columns for JSON schema inference: ${jsonColumns.map(c => c['COLUMN_NAME'])}`, containerName: schema, entityName: table });
 
-						documents = await oracleHelper.selectRecords({ tableName: table, limit: quantity });
+						documents = await oracleHelper.selectRecords({ tableName: table, limit: quantity, jsonColumns });
 						jsonSchema = await oracleHelper.getJsonSchema(jsonColumns, documents);
-					} else if (collectionsInfo?.fieldInference?.active === 'field') {
-						documents = await oracleHelper.selectRecords({ tableName: table, limit: 1 });
 					}
 					
-					const entityData = await oracleHelper.getEntityData(fullTableName);
+					const indexes = await oracleHelper.getIndexStatements({ table, schema });
 
-					logger.progress({ message: `Data retrieved successfully`, containerName: schema, entityName: table });
+					progress({ message: `Data retrieved successfully`, containerName: schema, entityName: table });
 
 					return result.concat({
 						dbName: schema,
 						collectionName: table,
-						entityLevel: entityData,
-						standardDoc: documents[0],
+						entityLevel: {},
 						documents: documents,
 						views: [],
 						ddl: {
-							script: ddl,
+							script: ddl + '\n' + indexes.join('\n'),
 							type: 'oracle'
 						},
 						emptyBucket: false,
@@ -124,11 +124,11 @@ module.exports = {
 					const result = await next;
 
 					const fullViewName = oracleHelper.getFullEntityName(schema, view);
-					logger.progress({ message: `Start getting data from view`, containerName: schema, entityName: view });
+					progress({ message: `Start getting data from view`, containerName: schema, entityName: view });
 					const ddl = await oracleHelper.getViewDDL(view);
 					const viewData = await oracleHelper.getViewData(fullViewName);
 
-					logger.progress({ message: `Data retrieved successfully`, containerName: schema, entityName: view });
+					progress({ message: `Data retrieved successfully`, containerName: schema, entityName: view });
 
 					return result.concat({
 						name: view,
@@ -157,6 +157,8 @@ module.exports = {
 
 				return [...packages, ...tablesPackages, viewPackage];
 			}, Promise.resolve([]));
+
+			progress({ message: 'Start processing the retrieved data in the application ...' });
 
 			callback(null, packages.filter(Boolean), { version: dbVersion });
 		} catch (error) {
