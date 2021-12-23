@@ -127,13 +127,6 @@ making sure that you maintain a proper JSON format.
 				"template": "textarea"
 			},
 			{
-				"propertyName": "If not exists",
-				"propertyKeyword": "ifNotExist",
-				"propertyTooltip": "When the IF NOT EXISTS clause is used, Oracle will return a warning instead of an error if the specified table already exists. Cannot be used together with the OR REPLACE clause.",
-				"propertyType": "checkbox",
-				"defaultValue": true
-			},
-			{
 				"propertyName": "Temporary",
 				"propertyKeyword": "temporary",
 				"propertyTooltip": "The data in a temporary table is visible only to the session that inserts the data into the table.  Temporary tables are subject to restrictions.",
@@ -252,7 +245,7 @@ making sure that you maintain a proper JSON format.
 					},
 					{
 						"propertyName": "Hash and data format clause",
-						"propertyKeyword": "blockchain_hash_and data_format_clause",
+						"propertyKeyword": "blockchain_hash_and_data_format_clause",
 						"propertyTooltip": "",
 						"propertyType": "text"
 					}
@@ -300,7 +293,7 @@ making sure that you maintain a proper JSON format.
 					},
 					{
 						"propertyName": "Access parameters",
-						"propertyKeyword": "access_driver_type",
+						"propertyKeyword": "access_parameter_type",
 						"propertyTooltip": "Lets you assign values to the parameters of the specific access driver for this external table.",
 						"propertyType": "select",
 						"defaultValue": "Opaque Format Spec",
@@ -318,7 +311,7 @@ making sure that you maintain a proper JSON format.
 						"template": "textarea",
 						"markdown": false,
 						"dependency": {
-							"key": "access_driver_type",
+							"key": "access_parameter_type",
 							"value": "Opaque Format Spec"
 						}
 					},
@@ -330,7 +323,7 @@ making sure that you maintain a proper JSON format.
 						"template": "textarea",
 						"markdown": false,
 						"dependency": {
-							"key": "access_driver_type",
+							"key": "access_parameter_type",
 							"value": "Using CLOB Subquery"
 						}
 					},
@@ -393,7 +386,8 @@ making sure that you maintain a proper JSON format.
 			{
 				"propertyName": "Partitioning",
 				"propertyKeyword": "partitioning",
-				"propertyType": "block",
+				"propertyType": "group",
+				"groupItemLimit": 1,
 				"propertyTooltip": "Determines how a partitioned table's rows are distributed across partitions",
 				"structure": [
 					{

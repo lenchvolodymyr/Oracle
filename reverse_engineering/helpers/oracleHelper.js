@@ -6,11 +6,14 @@ const setDependencies = ({ lodash }) => _ = lodash;
 
 let connection;
 
-const connect = async (logger, { host, port, userName, userPassword, databaseName, clientPath }) => {
+const connect = async (logger, { connectionMethod, authMethod, host, port, userName, userPassword, databaseName, serviceName, clientPath }) => {
 	if (!connection) {
 		oracleDB.initOracleClient({ libDir: clientPath });
 
-		return authByCredentials({ host: `${host}:${port}`, username: userName, password: userPassword, database: databaseName });
+		if (authMethod === 'Username / Password') {
+			const connectString = connectionMethod === 'Wallet' ? serviceName : `${host}:${port}/${databaseName}`;
+			return authByCredentials({ connectString, username: userName, password: userPassword });
+		}
 	}
 };
 
@@ -29,12 +32,12 @@ const disconnect = async () => {
 	});
 };
 
-const authByCredentials = ({ host, username, password, database }) => {
+const authByCredentials = ({ connectString, username, password }) => {
 	return new Promise((resolve, reject) => {
 		oracleDB.getConnection({
 			username,
 			password,
-			connectString: `${host}/${database}`,
+			connectString,
 		}, (err, conn) => {
 			if (err) {
 				connection = null;
@@ -309,7 +312,7 @@ const getViewDDL = async viewName => {
 	try {
 		//TODO what if mat. view?
 		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('VIEW', VIEW_NAME) FROM ALL_VIEWS WHERE VIEW_NAME='${viewName}'`);
-		return await _.first(_.first(queryResult)).getData();
+		return `${(await _.first(_.first(queryResult)).getData())};`;
 	} catch (err) {
 		return '';
 	}

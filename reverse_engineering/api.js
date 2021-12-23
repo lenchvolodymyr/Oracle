@@ -154,8 +154,7 @@ module.exports = {
 						database: schema,
 					}
 				});
-
-				return [...packages, ...tablesPackages, viewPackage];
+				return [ ...packages, ...tablesPackages, viewPackage ];
 			}, Promise.resolve([]));
 
 			progress({ message: 'Start processing the retrieved data in the application ...' });
