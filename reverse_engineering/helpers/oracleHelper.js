@@ -216,7 +216,7 @@ const readRecordsValues = async (records) => {
 };
 
 const selectRecords = async ({ tableName, limit, jsonColumns }) => {
-	const records = await execute(`SELECT ${jsonColumns.map((c) => c['COLUMN_NAME']).join(', ')} FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
+	const records = await execute(`SELECT '${jsonColumns.map((c) => c['COLUMN_NAME']).join('\', \'')}' FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
 		outFormat: oracleDB.OBJECT,
 	});
 
