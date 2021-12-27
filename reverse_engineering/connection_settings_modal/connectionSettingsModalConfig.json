@@ -9,59 +9,90 @@
 				"inputPlaceholder": "Name"
 			},
 			{
-				"inputLabel": "Database name",
-				"inputKeyword": "databaseName",
-				"description": "Database name",
+				"inputLabel": "Client type",
+				"inputKeyword": "clientType",
+				"inputType": "select",
+				"defaultValue": "Host / Port",
+				"options": [
+					{ "value": "OracleHome", "label": "Oracle Home" },
+					{ "value": "InstantClient", "label": "Instant Client" }
+				]
+			},
+			{
+				"inputLabel": "Client location",
+				"inputKeyword": "clientPath",
 				"inputType": "text",
-				"inputPlaceholder": "Database name",
-				"regex": "([^\\s])"
+				"inputPlaceholder": "Client path"
 			},
 			{
 				"inputLabel": "Connection method",
 				"inputKeyword": "connectionMethod",
-				"description": "Specify connection method",
 				"inputType": "select",
-				"defaultValue": "Host / Port",
-				"options": [{
-					"value": "Host / Port",
-					"label": "Host / Port"
-				},
-				{
-					"value": "Wallet",
-					"label": "Wallet"
-				}
+				"defaultValue": "Basic",
+				"options": [
+					{ "value": "Basic", "label": "Basic" },
+					{ "value": "Wallet", "label": "Cloud Wallet" },
+				    { "value": "TNS", "label": "TNS" }
 				]
 			},
 			{
-				"inputLabel": "Host",
+				"inputLabel": "Hostname",
 				"inputKeyword": "host",
-				"description": "Specify host IP address or DNS name of Oracle server",
+				"description": "Specify the host IP address or DNS name of Oracle server",
 				"inputType": "text",
 				"dependency": {
 					"key": "connectionMethod",
-					"value": "Host / Port"
+					"value": "Basic"
 				},
 				"regex": "([^\\s])"
 			},
 			{
 				"inputLabel": "Port",
 				"inputKeyword": "port",
-				"description": "Specify port number of Oracle server",
+				"description": "Specify the port number of Oracle server",
 				"inputType": "numeric",
 				"defaultValue": 1521,
 				"dependency": {
 					"key": "connectionMethod",
-					"value": "Host / Port"
+					"value": "Basic"
+				}
+			},
+			{
+				"inputLabel": "Wallet file",
+				"inputKeyword": "walletFile",
+				"description": "Specify the full path location and name of the wallet zip file",
+				"inputType": "text",
+				"dependency": {
+					"key": "connectionMethod",
+					"value": [
+						"Wallet"
+					]
+				}
+			},
+			{
+				"inputLabel": "Tnsnames path",
+				"inputKeyword": "TNSpath",
+				"description": "Specify the full path location of the tnsnames.ora file",
+				"inputType": "text",
+				"dependency": {
+					"key": "connectionMethod",
+					"value": [
+						"TNS"
+					]
 				}
 			},
 			{
 				"inputLabel": "Service Name",
 				"inputKeyword": "serviceName",
-				"description": "Specify service name of Oracle Cloud Instance",
+				"description": "Specify the service name of the Oracle Instance",
 				"inputType": "text",
 				"dependency": {
 					"key": "connectionMethod",
-					"value": "Wallet"
+					"value": [
+						"Basic",
+						"Wallet",
+						"TNS"
+					]
 				}
 			}
 		]
@@ -74,10 +105,11 @@
 				"inputKeyword": "authMethod",
 				"inputType": "select",
 				"defaultValue": "Username / Password",
-				"options": [{
-					"value": "Username / Password",
-					"label": "Username / Password"
-				}]
+				"options": [
+					{ "value": "Username / Password", "label": "Username / Password" },
+					{ "value": "OS", "label": "OS" },
+					{ "value": "Kerberos", "label": "Kerberos" },
+				]
 			},
 			{
 				"inputLabel": "User Name",
@@ -86,7 +118,10 @@
 				"inputPlaceholder": "User Name",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": [
+						"Username / Password",
+						"Kerberos"
+					]
 				},
 				"validation": {
 					"regex": "([^\\s])"
@@ -99,7 +134,10 @@
 				"inputPlaceholder": "Password",
 				"dependency": {
 					"key": "authMethod",
-					"value": "Username / Password"
+					"value": [
+						"Username / Password",
+						"Kerberos"
+					]
 				},
 				"isHiddenKey": true,
 				"validation": {
@@ -109,13 +147,16 @@
 		]
 	},
 	{
-		"tab": "Client",
+		"tab": "Advanced",
 		"structure": [
 			{
-				"inputLabel": "Client Path",
-				"inputKeyword": "clientPath",
+				"inputLabel": "Database name",
+				"inputKeyword": "databaseName",
+				"description": "Database name",
 				"inputType": "text",
-				"inputPlaceholder": "Client Path"
+				"inputPlaceholder": "Database name",
+				"description": "Optionally specify a database name to limit the scope of discovery",
+				"regex": "([^\\s])"
 			}
 		]
 	}
