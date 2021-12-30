@@ -54,37 +54,35 @@ const authByCredentials = ({ connectString, username, password, queryRequestTime
 };
 
 const pairToObj = (pairs) => _.reduce(pairs, (obj, pair) => ({ ...obj, [pair[0]]: [...(obj[pair[0]] || []), pair[1]] }), {});
+const tableNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
+const externalTableNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
+const viewNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
+const materializedViewNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_MVIEWS T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
 
-const tableNamesByUser = () => execute('SELECT OWNER, TABLE_NAME FROM ALL_TABLES WHERE OWNER NOT LIKE \'%SYS%\' AND OWNER NOT LIKE \'%XDB%\'');
-const externalTableNamesByUser = () => execute('SELECT OWNER, TABLE_NAME FROM ALL_EXTERNAL_TABLES WHERE OWNER NOT LIKE \'%SYS%\' AND OWNER NOT LIKE \'%XDB%\'');
-const viewNamesByUser = () => execute('SELECT OWNER, VIEW_NAME || \' (v)\' FROM ALL_VIEWS WHERE OWNER NOT LIKE \'%SYS%\' AND OWNER NOT LIKE \'%XDB%\'');
-const materializedViewNamesByUser = () => execute('SELECT OWNER, VIEW_NAME || \' (v)\' FROM ALL_MVIEWS WHERE OWNER NOT LIKE \'%SYS%\' AND OWNER NOT LIKE \'%XDB%\'');
-
-const getEntitiesNames = async (logger) => {
-	const tables = await tableNamesByUser().catch(e => {
+const getEntitiesNames = async (connectionInfo,logger) => {
+	const tables = await tableNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve tables' });
 		logger.error(e);
 		return [];
 	});
-	const externalTables = await externalTableNamesByUser().catch(e => {
+	const externalTables = await externalTableNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve external tables' });
 		logger.error(e);
 
 		return [];
 	});
-	const views = await viewNamesByUser().catch(e => {
+	const views = await viewNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve views' });
 		logger.error(e);
 
 		return [];
 	});
-	const materializedViews = await materializedViewNamesByUser().catch(e => {
+	const materializedViews = await materializedViewNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve materialized views' });
 		logger.error(e);
 
 		return [];
 	});
-
 	const entities = pairToObj([...tables, ...externalTables, ...views, ...materializedViews]);
 
 	return Object.keys(entities).reduce((arr, user) => [...arr, {
@@ -151,7 +149,7 @@ const splitEntityNames = names => {
 
 const getDDL = async (tableName, logger) => {
 	try {
-		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME) FROM ALL_TABLES WHERE TABLE_NAME='${tableName}'`);
+		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) FROM ALL_TABLES WHERE TABLE_NAME='${tableName}'`);
 		const ddl = await _.first(_.first(queryResult)).getData();
 
 		if (!/;\s*$/.test(ddl)) {
@@ -216,7 +214,7 @@ const readRecordsValues = async (records) => {
 };
 
 const selectRecords = async ({ tableName, limit, jsonColumns }) => {
-	const records = await execute(`SELECT ${jsonColumns.map((c) => c['COLUMN_NAME']).join(', ')} FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
+	const records = await execute(`SELECT ${jsonColumns.map((c) => `'${c['COLUMN_NAME']}'`).join(', ')} FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
 		outFormat: oracleDB.OBJECT,
 	});
 
@@ -288,7 +286,7 @@ const getIndexStatements = async ({ table, schema }) => {
 
 	primaryKeyConstraints = primaryKeyConstraints.flat();
 
-	let indexQuery = `SELECT DBMS_METADATA.GET_DDL('INDEX',u.index_name) AS STATEMENT FROM ALL_INDEXES u WHERE u.TABLE_OWNER='${schema}' AND u.TABLE_NAME='${table}'`;
+	let indexQuery = `SELECT DBMS_METADATA.GET_DDL('INDEX',u.index_name, OWNER) AS STATEMENT FROM ALL_INDEXES u WHERE u.TABLE_OWNER='${schema}' AND u.TABLE_NAME='${table}'`;
 
 	if (primaryKeyConstraints.length) {
 		indexQuery += ` AND u.INDEX_NAME NOT IN ('${primaryKeyConstraints.join('\', \'')}')`;
@@ -301,7 +299,7 @@ const getIndexStatements = async ({ table, schema }) => {
 
 const getViewDDL = async (viewName, logger) => {
 	try {
-		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('VIEW', VIEW_NAME) FROM ALL_VIEWS WHERE VIEW_NAME='${viewName}'`);
+		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('VIEW', VIEW_NAME, OWNER) FROM ALL_VIEWS WHERE VIEW_NAME='${viewName}'`);
 
 		return `${(await _.first(_.first(queryResult)).getData())};`;
 	} catch (err) {

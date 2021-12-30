@@ -44,7 +44,7 @@ module.exports = {
 			
 			logInfo('Retrieving databases and tables information', connectionInfo, logger);
 			await this.connect(connectionInfo, logger, () => { }, app);
-			const objects = await oracleHelper.getEntitiesNames({
+			const objects = await oracleHelper.getEntitiesNames(connectionInfo, {
 				info: (data) => {
 					logger.log('info', data, 'Retrieving table and view names');
 				},
