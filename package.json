@@ -1,10 +1,10 @@
 {
     "name": "Oracle",
-    "version": "0.0.3",
-    "versionDate": "2021-11-01",
+    "version": "0.0.4",
+    "versionDate": "2021-12-23",
     "author": "hackolade",
     "engines": {
-        "hackolade": "5.2.8",
+        "hackolade": "5.3.3",
         "hackoladePlugin": "1.2.0"
     },
     "contributes": {
