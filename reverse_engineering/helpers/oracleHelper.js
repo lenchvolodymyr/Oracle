@@ -213,12 +213,31 @@ const readRecordsValues = async (records) => {
 	}, Promise.resolve([]));
 };
 
+const escapeName = (name) => {
+	if (name.includes(' ')) {
+		return `'${name}'`;
+	}
+
+	return name;
+};
+
+const replaceNames = (columns, records) => {
+	return records.map((record) => {
+		return columns.reduce((result, column) => {
+			const name = column['COLUMN_NAME'];
+			result[name] = record[name];
+
+			return result;
+		}, {});
+	});
+};
+
 const selectRecords = async ({ tableName, limit, jsonColumns }) => {
-	const records = await execute(`SELECT '${jsonColumns.map((c) => c['COLUMN_NAME']).join('\', \'')}' FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
+	const records = await execute(`SELECT ${jsonColumns.map((c) => escapeName(c['COLUMN_NAME'])).join(', ')} FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
 		outFormat: oracleDB.OBJECT,
 	});
 
-	const result = await readRecordsValues(records);
+	const result = await readRecordsValues(replaceNames(jsonColumns, records));
 
 	return result;
 };
