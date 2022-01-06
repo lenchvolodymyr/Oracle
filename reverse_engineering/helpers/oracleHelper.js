@@ -54,30 +54,46 @@ const authByCredentials = ({ connectString, username, password, queryRequestTime
 };
 
 const pairToObj = (pairs) => _.reduce(pairs, (obj, pair) => ({ ...obj, [pair[0]]: [...(obj[pair[0]] || []), pair[1]] }), {});
-const tableNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
-const externalTableNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
-const viewNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
-const materializedViewNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_MVIEWS T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
+
+const selectEntities = (selectStatement, includeSystemCollection, userName) => {
+	if (includeSystemCollection) {
+		return execute(selectStatement);
+	} else {
+		return execute(`${selectStatement} WHERE T.OWNER = :userName`, {}, [userName]);
+	}
+};
+
+const tableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T`, includeSystemCollection, userName);
+const externalTableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T`, includeSystemCollection, userName);
+const viewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T`, includeSystemCollection, userName);
+const materializedViewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, userName);
+
+const getCurrentUserName = async () => {
+	const currentUser = await execute(`SELECT USER FROM DUAL`, { outFormat: oracleDB.OBJECT });
+
+	return currentUser?.[0]?.USER;
+};
 
 const getEntitiesNames = async (connectionInfo,logger) => {
-	const tables = await tableNamesByUser(connectionInfo).catch(e => {
+	const currentUser = await getCurrentUserName();
+	const tables = await tableNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve tables' });
 		logger.error(e);
 		return [];
 	});
-	const externalTables = await externalTableNamesByUser(connectionInfo).catch(e => {
+	const externalTables = await externalTableNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve external tables' });
 		logger.error(e);
 
 		return [];
 	});
-	const views = await viewNamesByUser(connectionInfo).catch(e => {
+	const views = await viewNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve views' });
 		logger.error(e);
 
 		return [];
 	});
-	const materializedViews = await materializedViewNamesByUser(connectionInfo).catch(e => {
+	const materializedViews = await materializedViewNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve materialized views' });
 		logger.error(e);
 
@@ -92,14 +108,14 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 	}], []);
 };
 
-const execute = (command, options = {}) => {
+const execute = (command, options = {}, binds = []) => {
 	if (!connection) {
 		return Promise.reject(noConnectionError)
 	}
 	return new Promise((resolve, reject) => {
 		connection.execute(
 			command,
-			{},
+			binds,
 			options,
 			(err, result) => {
 				if (err) {
