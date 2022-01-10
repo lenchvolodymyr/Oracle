@@ -1,0 +1,13 @@
+{
+    "name": "object_udt",
+    "erdAbbreviation": "<obj_udt>",
+    "dtdAbbreviation": "{...}",
+    "parentType": "document",
+    "hiddenOnEntity": [
+        "collection",
+        "view"
+    ],
+    "defaultValues": {
+        "properties": []
+    }
+}
