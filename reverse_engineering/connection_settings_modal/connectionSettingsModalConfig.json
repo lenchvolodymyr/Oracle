@@ -22,7 +22,11 @@
 				"inputLabel": "Client location",
 				"inputKeyword": "clientPath",
 				"inputType": "text",
-				"inputPlaceholder": "Client path"
+				"inputPlaceholder": "Client path",
+				"dependency": {
+					"key": "clientType",
+					"value": "InstantClient"
+				}
 			},
 			{
 				"inputLabel": "Connection method",
@@ -70,10 +74,11 @@
 				}
 			},
 			{
-				"inputLabel": "Tnsnames path",
+				"inputLabel": "Tnsnames Directory",
 				"inputKeyword": "TNSpath",
-				"description": "Specify the full path location of the tnsnames.ora file",
-				"inputType": "text",
+				"description": "Specify the full path to directory with tnsnames.ora file",
+				"inputType": "file",
+				"openType": "openDirectory",
 				"dependency": {
 					"key": "connectionMethod",
 					"value": [
