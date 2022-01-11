@@ -10,6 +10,10 @@ module.exports = {
 		initDependencies(app);
 		logger.clear();
 		logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
+		logger.log('info', {
+			TNS_ADMIN: process.env.TNS_ADMIN ?? '',
+			ORACLE_HOME: process.env.ORACLE_HOME ?? '',
+		}, 'Environment variables');
 		try {
 			await oracleHelper.connect(connectionInfo);
 			callback();

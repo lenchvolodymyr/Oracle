@@ -1,7 +1,5 @@
 const oracleDB = require('oracledb');
-const extractZip = require('./extractZip');
-const path = require('path');
-const fs = require('fs');
+const extractWallet = require('./extractWallet');
 
 const noConnectionError = { message: 'Connection error' };
 
@@ -9,44 +7,7 @@ const setDependencies = ({ lodash }) => _ = lodash;
 
 let connection;
 
-const replaceSqlNetOraDirectoryPath = (sqlNetOraPath, walletLocation) => {
-	if (!fs.existsSync(sqlNetOraPath)) {
-		return;
-	}
-	const walletLocationRegExp = /DIRECTORY\=\"\?\/network\/admin\"/i;
-	let sqlNetContent = fs.readFileSync(sqlNetOraPath).toString();
-
-	if (!walletLocationRegExp.test(sqlNetContent)) {
-		return;
-	}
-	
-	sqlNetContent = sqlNetContent.replace(/DIRECTORY\=\"\?\/network\/admin\"/i, `DIRECTORY="${walletLocation}"`);
-
-	fs.writeFileSync(sqlNetOraPath, sqlNetContent);
-};
-
-const extractWallet = async ({ id, walletFile, tempFolder, name }) => {
-	if (!fs.existsSync(walletFile)) {
-		return;
-	}
-	
-	const extractedPath = path.join(tempFolder, name + '_' + id);
-
-	if (fs.existsSync(extractedPath)) {
-		return extractedPath;
-	}
-
-	await extractZip(walletFile, extractedPath);
-	
-	const sqlNetOra = path.join(extractedPath, 'sqlnet.ora');
-
-	replaceSqlNetOraDirectoryPath(sqlNetOra, extractedPath);
-
-	return extractedPath;
-};
-
 const connect = async ({
-	id,
 	walletFile,
 	tempFolder,
 	name,
@@ -59,24 +20,49 @@ const connect = async ({
 	databaseName,
 	serviceName,
 	clientPath,
+	clientType,
 	queryRequestTimeout,
+	authMethod,
 }) => {
 	if (connection) {
 		return connection;
 	}
-	let configDir = '';
+	let configDir;
+	let libDir;
+	let credentials = {};
 
 	if (connectionMethod === 'Wallet') {
-		configDir = await extractWallet({ id, walletFile, tempFolder, name });
+		configDir = await extractWallet({ walletFile, tempFolder, name });
 	}
 
 	if (connectionMethod === 'TNS') {
 		configDir = TNSpath;
 	}
 
-	oracleDB.initOracleClient({ libDir: clientPath, configDir });
+	if (clientType === 'InstantClient') {
+		libDir = clientPath;
+	}
 
-	const connectString = ['Wallet', 'TNS'].includes(connectionMethod) ? serviceName : `${host}:${port}/${databaseName}`;
+	oracleDB.initOracleClient({ libDir, configDir });
+
+	let connectString = '';
+
+	if (['Wallet', 'TNS'].includes(connectionMethod)) {
+		connectString = serviceName;
+	} else {
+		connectString = `${host}:${port}/${databaseName}`;
+	}
+
+	if (authMethod === 'OS') {
+		credentials.externalAuth = true;		
+	} else if (authMethod === 'Kerberos') {
+		credentials.username = userName;
+		credentials.password = userPassword;		
+		credentials.externalAuth = true;		
+	} else {
+		credentials.username = userName;
+		credentials.password = userPassword;
+	}
 
 	return authByCredentials({ connectString, username: userName, password: userPassword, queryRequestTimeout });
 };

@@ -21,8 +21,9 @@
 			{
 				"inputLabel": "Client location",
 				"inputKeyword": "clientPath",
-				"inputType": "text",
+				"inputType": "file",
 				"inputPlaceholder": "Client path",
+				"openType": "openDirectory",
 				"dependency": {
 					"key": "clientType",
 					"value": "InstantClient"
@@ -65,7 +66,8 @@
 				"inputLabel": "Wallet file",
 				"inputKeyword": "walletFile",
 				"description": "Specify the full path location and name of the wallet zip file",
-				"inputType": "text",
+				"inputType": "file",
+				"extensions": ["zip"],
 				"dependency": {
 					"key": "connectionMethod",
 					"value": [
@@ -94,7 +96,6 @@
 				"dependency": {
 					"key": "connectionMethod",
 					"value": [
-						"Basic",
 						"Wallet",
 						"TNS"
 					]
@@ -113,7 +114,7 @@
 				"options": [
 					{ "value": "Username / Password", "label": "Username / Password" },
 					{ "value": "OS", "label": "OS" },
-					{ "value": "Kerberos", "label": "Kerberos" },
+					{ "value": "Kerberos", "label": "Kerberos" }
 				]
 			},
 			{
