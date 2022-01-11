@@ -5,7 +5,8 @@
   "author": "Hackolade",
   "dependencies": {
     "adm-zip": "^0.5.9",
-    "oracledb": "^5.3.0"
+    "oracledb": "^5.3.0",
+    "perplex": "^0.11.0"
   },
   "installed": true
 }

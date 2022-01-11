@@ -13,9 +13,13 @@ module.exports = {
 		logger.log('info', {
 			TNS_ADMIN: process.env.TNS_ADMIN ?? '',
 			ORACLE_HOME: process.env.ORACLE_HOME ?? '',
+			LD_LIBRARY_PATH: process.env.LD_LIBRARY_PATH ?? '',
+			ORACLE_BASE: process.env.ORACLE_BASE ?? '',
 		}, 'Environment variables');
 		try {
-			await oracleHelper.connect(connectionInfo);
+			await oracleHelper.connect(connectionInfo, (message) => {
+				logger.log('info', message, 'Connection');
+			});
 			callback();
 		} catch (err) {
 			handleError(logger, err, callback);

@@ -1,11 +1,79 @@
 const oracleDB = require('oracledb');
 const extractWallet = require('./extractWallet');
+const path = require('path');
+const fs = require('fs');
+const parseTns = require('./parseTns');
 
 const noConnectionError = { message: 'Connection error' };
 
 const setDependencies = ({ lodash }) => _ = lodash;
 
 let connection;
+
+const parseProxyOptions = (proxyString = '') => {
+	const result = proxyString.match(/http:\/\/(?:.*?:.*?@)?(.*?):(\d+)/i);
+
+	if (!result) {
+		return '';
+	}
+
+	return `?https_proxy=${result[1]}&https_proxy_port=${result[2]}`;
+};
+
+const getTnsNamesOraFile = (configDir) => {
+	return [
+		configDir,
+		process.env.TNS_ADMIN,
+		path.join(process.env.ORACLE_HOME || '', 'network', 'admin'),
+		path.join(process.env.LD_LIBRARY_PATH || '', 'network', 'admin'),
+	].reduce((filePath, configFolder) => {
+		if (filePath) {
+			return filePath;
+		}
+
+		let file = 	path.join(configFolder, 'tnsnames.ora');
+
+		if (fs.existsSync(file)) {
+			return file;
+		} else {
+			return filePath;
+		}
+	}, '');
+};
+
+const parseTnsNamesOra = (filePath) => {
+	const content = fs.readFileSync(filePath).toString();
+	const result = parseTns(content);
+
+	return result;
+};
+
+const getConnectionStringByTnsNames = (configDir, serviceName, logger) => {
+	const filePath = getTnsNamesOraFile(configDir);
+
+	if (!fs.existsSync(filePath)) {
+		return serviceName;
+	}
+
+	logger({ message: 'Found tnsnames.ora file: ' + filePath });
+
+	const tnsData = parseTnsNamesOra(filePath);
+
+	logger({ message: 'tnsnames.ora successfully parsed' });
+
+	if (!tnsData[serviceName]) {
+		logger({ message: 'Cannot find "' + serviceName + '" in tnsnames.ora' });
+
+		return serviceName;
+	}
+
+	const address = tnsData[serviceName]?.data?.description?.address;
+	const service = tnsData[serviceName]?.data?.description?.connect_data?.service_name;
+
+	logger({ message: 'tnsnames.ora', address, service });
+
+	return `${address?.protocol || 'tcps'}://${address?.host}:${address?.port}/${service || serviceName}`;
+};
 
 const connect = async ({
 	walletFile,
@@ -23,13 +91,15 @@ const connect = async ({
 	clientType,
 	queryRequestTimeout,
 	authMethod,
-}) => {
+	options,
+}, logger) => {
 	if (connection) {
 		return connection;
 	}
 	let configDir;
 	let libDir;
 	let credentials = {};
+	let proxy = '';
 
 	if (connectionMethod === 'Wallet') {
 		configDir = await extractWallet({ walletFile, tempFolder, name });
@@ -43,12 +113,20 @@ const connect = async ({
 		libDir = clientPath;
 	}
 
+	if (options?.proxy) {
+		proxy = parseProxyOptions(options?.proxy);
+	}
+
 	oracleDB.initOracleClient({ libDir, configDir });
 
 	let connectString = '';
 
 	if (['Wallet', 'TNS'].includes(connectionMethod)) {
-		connectString = serviceName;
+		if (proxy) {
+			connectString = getConnectionStringByTnsNames(configDir, serviceName, logger) + proxy;
+		} else {
+			connectString = serviceName;
+		}
 	} else {
 		connectString = `${host}:${port}/${databaseName}`;
 	}
