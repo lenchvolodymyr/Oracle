@@ -72,7 +72,7 @@ const getTnsNamesOraFile = (configDir) => {
 			return filePath;
 		}
 
-		let file = 	path.join(configFolder, 'tnsnames.ora');
+		let file = path.join(configFolder, 'tnsnames.ora');
 
 		if (fs.existsSync(file)) {
 			return file;
