@@ -34,7 +34,7 @@ const parseTns = (data) => {
 	const lex = (new perplex(data))
 		.token("$SKIP_COMMENT", /#[^\n]*/, true)
 		.token("$SKIP_WS", /\s+/, true)
-		.token("WORD", /([a-z0-9._-]+|["'][\s\S]+?["'])/i)
+		.token("WORD", /([a-z0-9._-]+|["'][\s\S]*?["'])/i)
 		.token("(", /\(/)
 		.token(")", /\)/)
 		.token("=", /=/);

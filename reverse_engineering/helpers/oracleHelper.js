@@ -3,12 +3,53 @@ const extractWallet = require('./extractWallet');
 const path = require('path');
 const fs = require('fs');
 const parseTns = require('./parseTns');
+const ssh = require('tunnel-ssh');
 
 const noConnectionError = { message: 'Connection error' };
 
 const setDependencies = ({ lodash }) => _ = lodash;
 
 let connection;
+let sshTunnel;
+
+const getSshConfig = (info) => {
+	const config = {
+		username: info.ssh_user,
+		host: info.ssh_host,
+		port: info.ssh_port,
+		dstHost: info.host,
+		dstPort: info.port,
+		localHost: '127.0.0.1',
+		localPort: info.port,
+		keepAlive: true
+	};
+
+	if (info.ssh_method === 'privateKey') {
+		return Object.assign({}, config, {
+			privateKey: fs.readFileSync(info.ssh_key_file),
+			passphrase: info.ssh_key_passphrase
+		});
+	} else {
+		return Object.assign({}, config, {
+			password: info.ssh_password
+		});
+	}
+};
+
+const connectViaSsh = (info) => new Promise((resolve, reject) => {
+	ssh(getSshConfig(info), (err, tunnel) => {
+		if (err) {
+			reject(err);
+		} else {
+			resolve({
+				tunnel,
+				info: Object.assign({}, info, {
+					host: 'localhost',
+				})
+			});
+		}
+	});
+});
 
 const parseProxyOptions = (proxyString = '') => {
 	const result = proxyString.match(/http:\/\/(?:.*?:.*?@)?(.*?):(\d+)/i);
@@ -75,6 +116,56 @@ const getConnectionStringByTnsNames = (configDir, serviceName, logger) => {
 	return `${address?.protocol || 'tcps'}://${address?.host}:${address?.port}/${service || serviceName}`;
 };
 
+const getSshConnectionString = async (data, logger) => {
+	let connectionData = {
+		protocol: '',
+		host: '',
+		port: '',
+		service: '',
+	};
+	
+	if (['Wallet', 'TNS'].includes(data.connectionMethod)) {
+		const filePath = getTnsNamesOraFile(data.configDir);
+
+		if (!fs.existsSync(filePath)) {
+			throw new Error('Cannot find tnsnames.ora file. Please, specify tnsnames folder or use Base connection method.');
+		}
+
+		logger({ message: 'Found tnsnames.ora file: ' + filePath });
+
+		const tnsData = parseTnsNamesOra(filePath);
+
+		if (!tnsData[data.serviceName]) {
+			throw new Error('Cannot find "' + data.serviceName + '" in tnsnames.ora');
+		}
+
+		const address = tnsData[data.serviceName]?.data?.description?.address;
+		const service = tnsData[data.serviceName]?.data?.description?.connect_data?.service_name;
+
+		logger({ message: 'tnsnames.ora', address, service });
+
+
+		connectionData.protocol = address?.protocol + '://';
+		connectionData.host = address?.host;
+		connectionData.port = address?.port;
+		connectionData.service = service || data.serviceName;
+	} else {
+		connectionData.host = data.host;
+		connectionData.port = data.port;
+		connectionData.service = data.databaseName;
+	}
+
+	const { tunnel, info } = await connectViaSsh({
+		...data.sshConfig,
+		host: connectionData.host,
+		port: connectionData.port,
+	});
+
+	sshTunnel = tunnel;
+
+	return `${connectionData.protocol}${info.host}:${info.port}/${connectionData.service}`;
+};
+
 const connect = async ({
 	walletFile,
 	tempFolder,
@@ -92,6 +183,15 @@ const connect = async ({
 	queryRequestTimeout,
 	authMethod,
 	options,
+
+	ssh,
+	ssh_user,
+	ssh_host,
+	ssh_port,
+	ssh_method,
+	ssh_key_file,
+	ssh_key_passphrase,
+	ssh_password,
 }, logger) => {
 	if (connection) {
 		return connection;
@@ -131,6 +231,26 @@ const connect = async ({
 		connectString = `${host}:${port}/${databaseName}`;
 	}
 
+	if (ssh) {
+		connectString = await getSshConnectionString({
+			host,
+			port,
+			configDir,
+			serviceName,
+			connectionMethod,
+			databaseName,
+			sshConfig: {
+				ssh_user,
+				ssh_host,
+				ssh_port,
+				ssh_method,
+				ssh_key_file,
+				ssh_password,
+				ssh_key_passphrase,
+			},
+		}, logger);
+	}
+
 	if (authMethod === 'OS') {
 		credentials.externalAuth = true;		
 	} else if (authMethod === 'Kerberos') {
@@ -149,6 +269,11 @@ const disconnect = async () => {
 	if (!connection) {
 		return Promise.reject(noConnectionError);
 	}
+
+	if (sshTunnel) {
+		sshTunnel.close();
+	}
+
 	return new Promise((resolve, reject) => {
 		connection.close(err => {
 			connection = null;
