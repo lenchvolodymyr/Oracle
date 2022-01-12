@@ -2521,6 +2521,810 @@ making sure that you maintain a proper JSON format.
 				"propertyType": "details",
 				"template": "textarea"
 			}
+		],
+		"object_udt": [
+			"name",
+			"code",
+			"schemaId",
+			"type",
+			"default",
+			{
+				"propertyName": "Default constraint name",
+				"propertyKeyword": "defaultConstraintName",
+				"propertyType": "text"
+			},
+			{
+				"propertyName": "Comments",
+				"propertyKeyword": "description",
+				"propertyTooltip": "comments",
+				"addTimestampButton": false,
+				"propertyType": "details",
+				"template": "textarea"
+			},
+			{
+				"propertyName": "Not null",
+				"propertyKeyword": "required",
+				"enableForReference": true,
+				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Not null constraint name",
+				"propertyKeyword": "notNullConstraintName",
+				"propertyType": "text",
+				"dependency": {
+					"key": "required",
+					"values": true
+				}
+			},
+			{
+				"propertyName": "Encryption",
+				"propertyType": "block",
+				"propertyKeyword": "encryption",
+				"propertyTooltip": "",
+				"structure": [
+					{
+						"propertyName": "Key name",
+						"propertyKeyword": "COLUMN_ENCRYPTION_KEY",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Type",
+						"propertyKeyword": "ENCRYPTION_TYPE",
+						"propertyType": "select",
+						"options": [
+							"DETERMINISTIC",
+							"RANDOMIZED"
+						],
+						"data": "options",
+						"valueType": "string"
+					},
+					{
+						"propertyName": "Algorithm",
+						"propertyKeyword": "ENCRYPTION_ALGORITHM",
+						"propertyType": "text"
+					}
+				]
+			},
+			{
+				"propertyName": "Primary key",
+				"propertyKeyword": "compositePrimaryKey",
+				"propertyType": "checkbox",
+				"dependency": {
+					"key": "compositePrimaryKey",
+					"value": true
+				},
+				"disabled": true
+			},
+			{
+				"propertyName": "Primary key",
+				"propertyKeyword": "primaryKey",
+				"enableForReference": true,
+				"propertyType": "checkbox",
+				"dependency": {
+					"type": "and",
+					"values": [
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
+				}
+			},
+			{
+				"propertyName": "Primary key options",
+				"propertyType": "block",
+				"propertyKeyword": "primaryKeyOptions",
+				"enableForReference": true,
+				"propertyTooltip": "Primary key options",
+				"dependency": {
+					"type": "and",
+					"values": [
+						{
+							"key": "primaryKey",
+							"value": true
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
+				},
+				"structure": [
+					{
+						"propertyName": "Constraint name",
+						"propertyKeyword": "constraintName",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Partition name",
+						"propertyKeyword": "partitionName",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Order",
+						"propertyKeyword": "order",
+						"propertyType": "select",
+						"options": [
+							"ASC",
+							"DESC"
+						]
+					},
+					{
+						"propertyName": "Statistics no recompute",
+						"propertyKeyword": "staticticsNorecompute",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Statistics incremental",
+						"propertyKeyword": "statisticsIncremental",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Ignore duplicate",
+						"propertyKeyword": "ignoreDuplicate",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Allow row locks",
+						"propertyKeyword": "allowRowLocks",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Allow page locks",
+						"propertyKeyword": "allowPageLocks",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Padded",
+						"propertyKeyword": "isPadded",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Fill factor",
+						"propertyKeyword": "fillFactor",
+						"propertyType": "numeric",
+						"valueType": "number",
+						"allowNegative": false,
+						"minValue": 0,
+						"maxValue": 100
+					},
+					{
+						"propertyName": "Optimize for sequential key",
+						"propertyKeyword": "isOptimizedForSequentialKey",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Clustered",
+						"propertyKeyword": "clustered",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Data compression",
+						"propertyKeyword": "dataCompression",
+						"propertyType": "select",
+						"options": [
+							"NONE",
+							"ROW",
+							"PAGE",
+							"COLUMNSTORE",
+							"COLUMNSTORE_ARCHIVE"
+						]
+					}
+				]
+			},
+			{
+				"propertyName": "Unique",
+				"propertyKeyword": "compositeUniqueKey",
+				"propertyType": "checkbox",
+				"dependency": {
+					"key": "compositeUniqueKey",
+					"value": true
+				},
+				"disabled": true
+			},
+			{
+				"propertyName": "Unique",
+				"propertyKeyword": "unique",
+				"enableForReference": true,
+				"propertyType": "checkbox",
+				"dependency": {
+					"type": "and",
+					"values": [
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
+				}
+			},
+			{
+				"propertyName": "Unique key options",
+				"propertyType": "block",
+				"propertyKeyword": "uniqueKeyOptions",
+				"enableForReference": true,
+				"propertyTooltip": "Unique key options",
+				"dependency": {
+					"type": "and",
+					"values": [
+						{
+							"key": "unique",
+							"value": true
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
+				},
+				"structure": [
+					{
+						"propertyName": "Constraint name",
+						"propertyKeyword": "constraintName",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Partition name",
+						"propertyKeyword": "partitionName",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Order",
+						"propertyKeyword": "order",
+						"propertyType": "select",
+						"options": [
+							"ASC",
+							"DESC"
+						]
+					},
+					{
+						"propertyName": "Statistics no recompute",
+						"propertyKeyword": "staticticsNorecompute",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Statistics incremental",
+						"propertyKeyword": "statisticsIncremental",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Ignore duplicate",
+						"propertyKeyword": "ignoreDuplicate",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Allow row locks",
+						"propertyKeyword": "allowRowLocks",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Allow page locks",
+						"propertyKeyword": "allowPageLocks",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Padded",
+						"propertyKeyword": "isPadded",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Fill factor",
+						"propertyKeyword": "fillFactor",
+						"propertyType": "numeric",
+						"valueType": "number",
+						"allowNegative": false,
+						"minValue": 0,
+						"maxValue": 100
+					},
+					{
+						"propertyName": "Optimize for sequential key",
+						"propertyKeyword": "isOptimizedForSequentialKey",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Clustered",
+						"propertyKeyword": "clustered",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Data compression",
+						"propertyKeyword": "dataCompression",
+						"propertyType": "select",
+						"options": [
+							"NONE",
+							"ROW",
+							"PAGE",
+							"COLUMNSTORE",
+							"COLUMNSTORE_ARCHIVE"
+						]
+					}
+				]
+			},
+			"foreignCollection",
+			"foreignField",
+			"relationshipType",
+			"enum",
+			"sample",
+			{
+				"propertyName": "Remarks",
+				"propertyKeyword": "comments",
+				"shouldValidate": false,
+				"propertyTooltip": "remarks",
+				"addTimestampButton": true,
+				"propertyType": "details",
+				"template": "textarea"
+			}
+		],
+		"collection_udt": [
+			"name",
+			"code",
+			"schemaId",
+			"type",
+			"default",
+			{
+				"propertyName": "Subtype",
+				"propertyKeyword": "mode",
+				"propertyType": "select",
+				"options": [
+					"varray",
+					"table"
+				],
+				"data": "options",
+				"valueType": "string",
+				"cleanDependency": true
+			},
+			{
+				"propertyName": "Default constraint name",
+				"propertyKeyword": "defaultConstraintName",
+				"propertyType": "text"
+			},
+			{
+				"propertyName": "Comments",
+				"propertyKeyword": "description",
+				"propertyTooltip": "comments",
+				"addTimestampButton": false,
+				"propertyType": "details",
+				"template": "textarea"
+			},
+			{
+				"propertyName": "Not null",
+				"propertyKeyword": "required",
+				"enableForReference": true,
+				"propertyType": "checkbox"
+			},
+			{
+				"propertyName": "Not null constraint name",
+				"propertyKeyword": "notNullConstraintName",
+				"propertyType": "text",
+				"dependency": {
+					"key": "required",
+					"values": true
+				}
+			},
+			{
+				"propertyName": "Encryption",
+				"propertyType": "block",
+				"propertyKeyword": "encryption",
+				"propertyTooltip": "",
+				"structure": [
+					{
+						"propertyName": "Key name",
+						"propertyKeyword": "COLUMN_ENCRYPTION_KEY",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Type",
+						"propertyKeyword": "ENCRYPTION_TYPE",
+						"propertyType": "select",
+						"options": [
+							"DETERMINISTIC",
+							"RANDOMIZED"
+						],
+						"data": "options",
+						"valueType": "string"
+					},
+					{
+						"propertyName": "Algorithm",
+						"propertyKeyword": "ENCRYPTION_ALGORITHM",
+						"propertyType": "text"
+					}
+				]
+			},
+			{
+				"propertyName": "Primary key",
+				"propertyKeyword": "compositePrimaryKey",
+				"propertyType": "checkbox",
+				"dependency": {
+					"key": "compositePrimaryKey",
+					"value": true
+				},
+				"disabled": true
+			},
+			{
+				"propertyName": "Primary key",
+				"propertyKeyword": "primaryKey",
+				"enableForReference": true,
+				"propertyType": "checkbox",
+				"dependency": {
+					"type": "and",
+					"values": [
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
+				}
+			},
+			{
+				"propertyName": "Primary key options",
+				"propertyType": "block",
+				"propertyKeyword": "primaryKeyOptions",
+				"enableForReference": true,
+				"propertyTooltip": "Primary key options",
+				"dependency": {
+					"type": "and",
+					"values": [
+						{
+							"key": "primaryKey",
+							"value": true
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
+				},
+				"structure": [
+					{
+						"propertyName": "Constraint name",
+						"propertyKeyword": "constraintName",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Partition name",
+						"propertyKeyword": "partitionName",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Order",
+						"propertyKeyword": "order",
+						"propertyType": "select",
+						"options": [
+							"ASC",
+							"DESC"
+						]
+					},
+					{
+						"propertyName": "Statistics no recompute",
+						"propertyKeyword": "staticticsNorecompute",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Statistics incremental",
+						"propertyKeyword": "statisticsIncremental",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Ignore duplicate",
+						"propertyKeyword": "ignoreDuplicate",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Allow row locks",
+						"propertyKeyword": "allowRowLocks",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Allow page locks",
+						"propertyKeyword": "allowPageLocks",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Padded",
+						"propertyKeyword": "isPadded",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Fill factor",
+						"propertyKeyword": "fillFactor",
+						"propertyType": "numeric",
+						"valueType": "number",
+						"allowNegative": false,
+						"minValue": 0,
+						"maxValue": 100
+					},
+					{
+						"propertyName": "Optimize for sequential key",
+						"propertyKeyword": "isOptimizedForSequentialKey",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Clustered",
+						"propertyKeyword": "clustered",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Data compression",
+						"propertyKeyword": "dataCompression",
+						"propertyType": "select",
+						"options": [
+							"NONE",
+							"ROW",
+							"PAGE",
+							"COLUMNSTORE",
+							"COLUMNSTORE_ARCHIVE"
+						]
+					}
+				]
+			},
+			{
+				"propertyName": "Unique",
+				"propertyKeyword": "compositeUniqueKey",
+				"propertyType": "checkbox",
+				"dependency": {
+					"key": "compositeUniqueKey",
+					"value": true
+				},
+				"disabled": true
+			},
+			{
+				"propertyName": "Unique",
+				"propertyKeyword": "unique",
+				"enableForReference": true,
+				"propertyType": "checkbox",
+				"dependency": {
+					"type": "and",
+					"values": [
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
+				}
+			},
+			{
+				"propertyName": "Unique key options",
+				"propertyType": "block",
+				"propertyKeyword": "uniqueKeyOptions",
+				"enableForReference": true,
+				"propertyTooltip": "Unique key options",
+				"dependency": {
+					"type": "and",
+					"values": [
+						{
+							"key": "unique",
+							"value": true
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositePrimaryKey",
+								"value": false
+							}, {
+								"key": "compositePrimaryKey",
+								"exist": false
+							}]
+						},
+						{
+							"type": "or",
+							"values": [{
+								"key": "compositeUniqueKey",
+								"value": false
+							}, {
+								"key": "compositeUniqueKey",
+								"exist": false
+							}]
+						}
+					]
+				},
+				"structure": [
+					{
+						"propertyName": "Constraint name",
+						"propertyKeyword": "constraintName",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Partition name",
+						"propertyKeyword": "partitionName",
+						"propertyType": "text"
+					},
+					{
+						"propertyName": "Order",
+						"propertyKeyword": "order",
+						"propertyType": "select",
+						"options": [
+							"ASC",
+							"DESC"
+						]
+					},
+					{
+						"propertyName": "Statistics no recompute",
+						"propertyKeyword": "staticticsNorecompute",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Statistics incremental",
+						"propertyKeyword": "statisticsIncremental",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Ignore duplicate",
+						"propertyKeyword": "ignoreDuplicate",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Allow row locks",
+						"propertyKeyword": "allowRowLocks",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Allow page locks",
+						"propertyKeyword": "allowPageLocks",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Padded",
+						"propertyKeyword": "isPadded",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Fill factor",
+						"propertyKeyword": "fillFactor",
+						"propertyType": "numeric",
+						"valueType": "number",
+						"allowNegative": false,
+						"minValue": 0,
+						"maxValue": 100
+					},
+					{
+						"propertyName": "Optimize for sequential key",
+						"propertyKeyword": "isOptimizedForSequentialKey",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Clustered",
+						"propertyKeyword": "clustered",
+						"propertyType": "checkbox"
+					},
+					{
+						"propertyName": "Data compression",
+						"propertyKeyword": "dataCompression",
+						"propertyType": "select",
+						"options": [
+							"NONE",
+							"ROW",
+							"PAGE",
+							"COLUMNSTORE",
+							"COLUMNSTORE_ARCHIVE"
+						]
+					}
+				]
+			},
+			"foreignCollection",
+			"foreignField",
+			"relationshipType",
+			"enum",
+			"sample",
+			{
+				"propertyName": "Remarks",
+				"propertyKeyword": "comments",
+				"shouldValidate": false,
+				"propertyTooltip": "remarks",
+				"addTimestampButton": true,
+				"propertyType": "details",
+				"template": "textarea"
+			}
 		]
 	}
 } 

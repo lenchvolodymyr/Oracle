@@ -1,6 +1,24 @@
 {
 	"type": "ddl",
-	"ddlType": "oracle",
+	"ddlType": "plugin",
+	"mode": "plsql",
+	"fileExtensions": [
+		{
+			"value": "sql",
+			"label": "SQL"
+		}
+	],
+	"hasUpdateScript": false,
+	"applyScriptToInstance": false,
+	"combinedContainers": true,
+	"feLevelSelector": {
+		"container": true,
+		"model": true
+	},
+	"compMode": {
+		"entity": true,
+		"container": false
+	},
 	"namePrefix": "Oracle",
 	"level": {
 		"container": true,
