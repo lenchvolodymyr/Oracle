@@ -320,7 +320,7 @@ const selectEntities = (selectStatement, includeSystemCollection, userName) => {
 const tableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T`, includeSystemCollection, userName);
 const externalTableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T`, includeSystemCollection, userName);
 const viewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T`, includeSystemCollection, userName);
-const materializedViewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, userName);
+const materializedViewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.MVIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, userName);
 
 const getCurrentUserName = async () => {
 	const currentUser = await execute(`SELECT USER FROM DUAL`, { outFormat: oracleDB.OBJECT });
@@ -335,24 +335,36 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 		logger.error(e);
 		return [];
 	});
+
+	logger.info({ tables });
+
 	const externalTables = await externalTableNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve external tables' });
 		logger.error(e);
 
 		return [];
 	});
+
+	logger.info({ externalTables });
+
 	const views = await viewNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve views' });
 		logger.error(e);
 
 		return [];
 	});
+
+	logger.info({ views });
+
 	const materializedViews = await materializedViewNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve materialized views' });
 		logger.error(e);
 
 		return [];
 	});
+
+	logger.info({ materializedViews });
+
 	const entities = pairToObj([...tables, ...externalTables, ...views, ...materializedViews]);
 
 	return Object.keys(entities).reduce((arr, user) => [...arr, {
