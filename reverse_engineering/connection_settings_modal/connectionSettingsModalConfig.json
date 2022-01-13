@@ -153,19 +153,6 @@
 		]
 	},
 	{
-		"tab": "Advanced",
-		"structure": [
-			{
-				"inputLabel": "Database name",
-				"inputKeyword": "databaseName",
-				"inputType": "text",
-				"inputPlaceholder": "Database name",
-				"description": "Optionally specify a database name to limit the scope of discovery",
-				"regex": "([^\\s])"
-			}
-		]
-	},
-	{
 		"tab": "SSH",
 		"structure": [
 			{
@@ -266,6 +253,19 @@
 					"key": "ssh",
 					"value": false
 				}
+			}
+		]
+	},
+	{
+		"tab": "Advanced",
+		"structure": [
+			{
+				"inputLabel": "Database name",
+				"inputKeyword": "databaseName",
+				"inputType": "text",
+				"inputPlaceholder": "Database name",
+				"description": "Optionally specify a database name to limit the scope of discovery",
+				"regex": "([^\\s])"
 			}
 		]
 	}
