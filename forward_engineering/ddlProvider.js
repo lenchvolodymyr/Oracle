@@ -109,6 +109,9 @@ module.exports = (baseProvider, options, app) => {
             return {
                 name: columnDefinition.name,
                 type: jsonSchema.type,
+                ofType: jsonSchema.ofType,
+                notPersistable: jsonSchema.notPersistable,
+                size: jsonSchema.size,
                 mode: _.toUpper(jsonSchema.mode),
                 primaryKey: keyHelper.isInlinePrimaryKey(jsonSchema),
                 unique: keyHelper.isInlineUnique(jsonSchema),

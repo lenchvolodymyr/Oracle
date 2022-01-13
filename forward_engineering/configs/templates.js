@@ -31,7 +31,5 @@ module.exports = {
 
     objectTypeColumnDefinition: '${name} ${type}',
 
-    createCollectionType: 'CREATE OR REPLACE TYPE ${name} IS ${collectionType}${size} OF (${datatype});\n',
-
-    collectionTypeColumnDefinition: '${type} ${constraints}',
+    createCollectionType: 'CREATE OR REPLACE TYPE ${name} IS ${collectionType}${size} OF (${datatype})${notPersistable};\n',
 };
