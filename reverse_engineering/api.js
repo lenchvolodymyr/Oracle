@@ -116,7 +116,8 @@ module.exports = {
 						views: [],
 						ddl: {
 							script: ddl + '\n' + indexes.join('\n'),
-							type: 'oracle'
+							type: 'oracle',
+							takeAllDdlProperties: true,
 						},
 						emptyBucket: false,
 						validation: {
