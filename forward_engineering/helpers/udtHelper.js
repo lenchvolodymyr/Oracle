@@ -19,7 +19,8 @@ module.exports = ({
                     name: udtName,
                     collectionType: udt.mode,
                     size: _.isNumber(udt.size) ? `(${udt.size})` : defaultSize,
-                    datatype: `${getColumnDefinition(_.first(udt.properties), templates.collectionTypeColumnDefinition)}`,
+                    datatype: `${udt.ofType}${udt.nullable ? '' : ' NOT NULL'}`,
+                    notPersistable: `${udt.notPersistable ? ' NOT PERSISTABLE' : ''}`,
                 });
             default:
                 return '';
