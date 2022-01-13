@@ -2,7 +2,7 @@
     "name": "collection_udt",
     "erdAbbreviation": "<coll_udt>",
     "dtdAbbreviation": "{coll}",
-    "parentType": "document",
+    "parentType": "string",
     "hiddenOnEntity": [
         "collection",
         "view"
