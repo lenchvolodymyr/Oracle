@@ -4,13 +4,13 @@ module.exports = {
     comment: '\nCOMMENT ON ${object} ${objectName} IS ${comment};\n',
 
     createTable:
-        'CREATE ${tableType} TABLE ${name}\
+        'CREATE${tableType} TABLE ${name}\
         ${tableProps}\
         \n${options};\n${comment}${columnDescriptions}\n',
 
     createTableProps: '${columnDefinitions}${keyConstraints}${checkConstraints}${foreignKeyConstraints}',
 
-    columnDefinition: '${name} ${type} ${default} ${encrypt} ${constraints}',
+    columnDefinition: '${name}${type}${default}${encrypt}${constraints}',
 
     createKeyConstraint: '${constraintName}${keyType}${columns}',
 
@@ -27,7 +27,7 @@ module.exports = {
 
     viewSelectStatement: 'SELECT ${keys}\n\tFROM ${tableName}',
 
-    createObjectType: 'CREATE OR REPLACE TYPE ${name} AS OBJECT \n(\n${properties}\n);\n',
+    createObjectType: 'CREATE OR REPLACE TYPE ${name} AS OBJECT \n(\n\t${properties}\n);\n',
 
     objectTypeColumnDefinition: '${name} ${type}',
 
