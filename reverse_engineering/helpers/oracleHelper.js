@@ -1,25 +1,279 @@
 const oracleDB = require('oracledb');
+const extractWallet = require('./extractWallet');
+const path = require('path');
+const fs = require('fs');
+const parseTns = require('./parseTns');
+const ssh = require('tunnel-ssh');
 
 const noConnectionError = { message: 'Connection error' };
 
 const setDependencies = ({ lodash }) => _ = lodash;
 
 let connection;
+let sshTunnel;
 
-const connect = async ({ connectionMethod, authMethod, host, port, userName, userPassword, databaseName, serviceName, clientPath, queryRequestTimeout }) => {
-	if (!connection) {
-		oracleDB.initOracleClient({ libDir: clientPath });
+const getSshConfig = (info) => {
+	const config = {
+		username: info.ssh_user,
+		host: info.ssh_host,
+		port: info.ssh_port,
+		dstHost: info.host,
+		dstPort: info.port,
+		localHost: '127.0.0.1',
+		localPort: info.port,
+		keepAlive: true
+	};
 
-		const connectString = connectionMethod === 'Wallet' ? serviceName : `${host}:${port}/${databaseName}`;
-
-		return authByCredentials({ connectString, username: userName, password: userPassword, queryRequestTimeout });
+	if (info.ssh_method === 'privateKey') {
+		return Object.assign({}, config, {
+			privateKey: fs.readFileSync(info.ssh_key_file),
+			passphrase: info.ssh_key_passphrase
+		});
+	} else {
+		return Object.assign({}, config, {
+			password: info.ssh_password
+		});
 	}
+};
+
+const connectViaSsh = (info) => new Promise((resolve, reject) => {
+	ssh(getSshConfig(info), (err, tunnel) => {
+		if (err) {
+			reject(err);
+		} else {
+			resolve({
+				tunnel,
+				info: Object.assign({}, info, {
+					host: 'localhost',
+				})
+			});
+		}
+	});
+});
+
+const parseProxyOptions = (proxyString = '') => {
+	const result = proxyString.match(/http:\/\/(?:.*?:.*?@)?(.*?):(\d+)/i);
+
+	if (!result) {
+		return '';
+	}
+
+	return `?https_proxy=${result[1]}&https_proxy_port=${result[2]}`;
+};
+
+const getTnsNamesOraFile = (configDir) => {
+	return [
+		configDir,
+		process.env.TNS_ADMIN,
+		path.join(process.env.ORACLE_HOME || '', 'network', 'admin'),
+		path.join(process.env.LD_LIBRARY_PATH || '', 'network', 'admin'),
+	].reduce((filePath, configFolder) => {
+		if (filePath) {
+			return filePath;
+		}
+
+		let file = path.join(configFolder, 'tnsnames.ora');
+
+		if (fs.existsSync(file)) {
+			return file;
+		} else {
+			return filePath;
+		}
+	}, '');
+};
+
+const parseTnsNamesOra = (filePath) => {
+	const content = fs.readFileSync(filePath).toString();
+	const result = parseTns(content);
+
+	return result;
+};
+
+const getConnectionStringByTnsNames = (configDir, serviceName, logger) => {
+	const filePath = getTnsNamesOraFile(configDir);
+
+	if (!fs.existsSync(filePath)) {
+		return serviceName;
+	}
+
+	logger({ message: 'Found tnsnames.ora file: ' + filePath });
+
+	const tnsData = parseTnsNamesOra(filePath);
+
+	logger({ message: 'tnsnames.ora successfully parsed' });
+
+	if (!tnsData[serviceName]) {
+		logger({ message: 'Cannot find "' + serviceName + '" in tnsnames.ora' });
+
+		return serviceName;
+	}
+
+	const address = tnsData[serviceName]?.data?.description?.address;
+	const service = tnsData[serviceName]?.data?.description?.connect_data?.service_name;
+
+	logger({ message: 'tnsnames.ora', address, service });
+
+	return `${address?.protocol || 'tcps'}://${address?.host}:${address?.port}/${service || serviceName}`;
+};
+
+const getSshConnectionString = async (data, logger) => {
+	let connectionData = {
+		protocol: '',
+		host: '',
+		port: '',
+		service: '',
+	};
+	
+	if (['Wallet', 'TNS'].includes(data.connectionMethod)) {
+		const filePath = getTnsNamesOraFile(data.configDir);
+
+		if (!fs.existsSync(filePath)) {
+			throw new Error('Cannot find tnsnames.ora file. Please, specify tnsnames folder or use Base connection method.');
+		}
+
+		logger({ message: 'Found tnsnames.ora file: ' + filePath });
+
+		const tnsData = parseTnsNamesOra(filePath);
+
+		if (!tnsData[data.serviceName]) {
+			throw new Error('Cannot find "' + data.serviceName + '" in tnsnames.ora');
+		}
+
+		const address = tnsData[data.serviceName]?.data?.description?.address;
+		const service = tnsData[data.serviceName]?.data?.description?.connect_data?.service_name;
+
+		logger({ message: 'tnsnames.ora', address, service });
+
+
+		connectionData.protocol = address?.protocol + '://';
+		connectionData.host = address?.host;
+		connectionData.port = address?.port;
+		connectionData.service = service || data.serviceName;
+	} else {
+		connectionData.host = data.host;
+		connectionData.port = data.port;
+		connectionData.service = data.databaseName;
+	}
+
+	const { tunnel, info } = await connectViaSsh({
+		...data.sshConfig,
+		host: connectionData.host,
+		port: connectionData.port,
+	});
+
+	sshTunnel = tunnel;
+
+	return `${connectionData.protocol}${info.host}:${info.port}/${connectionData.service}`;
+};
+
+const connect = async ({
+	walletFile,
+	tempFolder,
+	name,
+	connectionMethod,
+	TNSpath,
+	host,
+	port,
+	userName,
+	userPassword,
+	databaseName,
+	serviceName,
+	clientPath,
+	clientType,
+	queryRequestTimeout,
+	authMethod,
+	options,
+
+	ssh,
+	ssh_user,
+	ssh_host,
+	ssh_port,
+	ssh_method,
+	ssh_key_file,
+	ssh_key_passphrase,
+	ssh_password,
+}, logger) => {
+	if (connection) {
+		return connection;
+	}
+	let configDir;
+	let libDir;
+	let credentials = {};
+	let proxy = '';
+
+	if (connectionMethod === 'Wallet') {
+		configDir = await extractWallet({ walletFile, tempFolder, name });
+	}
+
+	if (connectionMethod === 'TNS') {
+		configDir = TNSpath;
+	}
+
+	if (clientType === 'InstantClient') {
+		libDir = clientPath;
+	}
+
+	if (options?.proxy) {
+		proxy = parseProxyOptions(options?.proxy);
+	}
+
+	oracleDB.initOracleClient({ libDir, configDir });
+
+	let connectString = '';
+
+	if (['Wallet', 'TNS'].includes(connectionMethod)) {
+		if (proxy) {
+			connectString = getConnectionStringByTnsNames(configDir, serviceName, logger) + proxy;
+		} else {
+			connectString = serviceName;
+		}
+	} else {
+		connectString = `${host}:${port}/${databaseName}`;
+	}
+
+	if (ssh) {
+		connectString = await getSshConnectionString({
+			host,
+			port,
+			configDir,
+			serviceName,
+			connectionMethod,
+			databaseName,
+			sshConfig: {
+				ssh_user,
+				ssh_host,
+				ssh_port,
+				ssh_method,
+				ssh_key_file,
+				ssh_password,
+				ssh_key_passphrase,
+			},
+		}, logger);
+	}
+
+	if (authMethod === 'OS') {
+		credentials.externalAuth = true;		
+	} else if (authMethod === 'Kerberos') {
+		credentials.username = userName;
+		credentials.password = userPassword;		
+		credentials.externalAuth = true;		
+	} else {
+		credentials.username = userName;
+		credentials.password = userPassword;
+	}
+
+	return authByCredentials({ connectString, username: userName, password: userPassword, queryRequestTimeout });
 };
 
 const disconnect = async () => {
 	if (!connection) {
 		return Promise.reject(noConnectionError);
 	}
+
+	if (sshTunnel) {
+		sshTunnel.close();
+	}
+
 	return new Promise((resolve, reject) => {
 		connection.close(err => {
 			connection = null;
@@ -54,35 +308,63 @@ const authByCredentials = ({ connectString, username, password, queryRequestTime
 };
 
 const pairToObj = (pairs) => _.reduce(pairs, (obj, pair) => ({ ...obj, [pair[0]]: [...(obj[pair[0]] || []), pair[1]] }), {});
-const tableNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
-const externalTableNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
-const viewNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
-const materializedViewNamesByUser = ({includeSystemCollection, includeEmptyCollection}) => execute(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_MVIEWS T ${includeSystemCollection ? '' : ', DBA_USERS U WHERE T.OWNER = U.USERNAME and U.ORACLE_MAINTAINED = \'N\''}`);
+
+const selectEntities = (selectStatement, includeSystemCollection, userName) => {
+	if (includeSystemCollection) {
+		return execute(selectStatement);
+	} else {
+		return execute(`${selectStatement} WHERE T.OWNER = :userName`, {}, [userName]);
+	}
+};
+
+const tableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T`, includeSystemCollection, userName);
+const externalTableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T`, includeSystemCollection, userName);
+const viewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T`, includeSystemCollection, userName);
+const materializedViewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.MVIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, userName);
+
+const getCurrentUserName = async () => {
+	const currentUser = await execute(`SELECT USER FROM DUAL`, { outFormat: oracleDB.OBJECT });
+
+	return currentUser?.[0]?.USER;
+};
 
 const getEntitiesNames = async (connectionInfo,logger) => {
-	const tables = await tableNamesByUser(connectionInfo).catch(e => {
+	const currentUser = await getCurrentUserName();
+	const tables = await tableNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve tables' });
 		logger.error(e);
 		return [];
 	});
-	const externalTables = await externalTableNamesByUser(connectionInfo).catch(e => {
+
+	logger.info({ tables });
+
+	const externalTables = await externalTableNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve external tables' });
 		logger.error(e);
 
 		return [];
 	});
-	const views = await viewNamesByUser(connectionInfo).catch(e => {
+
+	logger.info({ externalTables });
+
+	const views = await viewNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve views' });
 		logger.error(e);
 
 		return [];
 	});
-	const materializedViews = await materializedViewNamesByUser(connectionInfo).catch(e => {
+
+	logger.info({ views });
+
+	const materializedViews = await materializedViewNamesByUser(connectionInfo, currentUser).catch(e => {
 		logger.info({ message: 'Cannot retrieve materialized views' });
 		logger.error(e);
 
 		return [];
 	});
+
+	logger.info({ materializedViews });
+
 	const entities = pairToObj([...tables, ...externalTables, ...views, ...materializedViews]);
 
 	return Object.keys(entities).reduce((arr, user) => [...arr, {
@@ -92,14 +374,14 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 	}], []);
 };
 
-const execute = (command, options = {}) => {
+const execute = (command, options = {}, binds = []) => {
 	if (!connection) {
 		return Promise.reject(noConnectionError)
 	}
 	return new Promise((resolve, reject) => {
 		connection.execute(
 			command,
-			{},
+			binds,
 			options,
 			(err, result) => {
 				if (err) {
@@ -213,12 +495,31 @@ const readRecordsValues = async (records) => {
 	}, Promise.resolve([]));
 };
 
+const escapeName = (name) => {
+	if (name.includes(' ')) {
+		return `'${name}'`;
+	}
+
+	return name;
+};
+
+const replaceNames = (columns, records) => {
+	return records.map((record) => {
+		return columns.reduce((result, column) => {
+			const name = column['COLUMN_NAME'];
+			result[name] = record[name];
+
+			return result;
+		}, {});
+	});
+};
+
 const selectRecords = async ({ tableName, limit, jsonColumns }) => {
-	const records = await execute(`SELECT '${jsonColumns.map((c) => c['COLUMN_NAME']).join('\', \'')}' FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
+	const records = await execute(`SELECT ${jsonColumns.map((c) => escapeName(c['COLUMN_NAME'])).join(', ')} FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
 		outFormat: oracleDB.OBJECT,
 	});
 
-	const result = await readRecordsValues(records);
+	const result = await readRecordsValues(replaceNames(jsonColumns, records));
 
 	return result;
 };

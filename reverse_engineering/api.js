@@ -10,8 +10,16 @@ module.exports = {
 		initDependencies(app);
 		logger.clear();
 		logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
+		logger.log('info', {
+			TNS_ADMIN: process.env.TNS_ADMIN ?? '',
+			ORACLE_HOME: process.env.ORACLE_HOME ?? '',
+			LD_LIBRARY_PATH: process.env.LD_LIBRARY_PATH ?? '',
+			ORACLE_BASE: process.env.ORACLE_BASE ?? '',
+		}, 'Environment variables');
 		try {
-			await oracleHelper.connect(connectionInfo);
+			await oracleHelper.connect(connectionInfo, (message) => {
+				logger.log('info', message, 'Connection');
+			});
 			callback();
 		} catch (err) {
 			handleError(logger, err, callback);
@@ -108,7 +116,8 @@ module.exports = {
 						views: [],
 						ddl: {
 							script: ddl + '\n' + indexes.join('\n'),
-							type: 'oracle'
+							type: 'oracle',
+							takeAllDdlProperties: true,
 						},
 						emptyBucket: false,
 						validation: {
