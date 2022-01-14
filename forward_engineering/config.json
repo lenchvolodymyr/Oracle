@@ -1,7 +1,7 @@
 {
 	"type": "ddl",
 	"ddlType": "plugin",
-	"mode": "plsql",
+	"mode": "sql",
 	"fileExtensions": [
 		{
 			"value": "sql",

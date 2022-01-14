@@ -1,6 +1,6 @@
 module.exports = ({ _ }) => {
     const getIndexType = (indexType) => {
-        return ` ${_.toUpper(indexType)}`;
+        return indexType ? ` ${_.toUpper(indexType)}` : '';
     };
 
     const getIndexKeys = ({
@@ -8,7 +8,7 @@ module.exports = ({ _ }) => {
         column_expression,
     }) => {
         if (_.isArray(indxKey) && !_.isEmpty(indxKey)) {
-            return `\n(\n\t${_.map(indxKey, ({name, type}) => `${name} ${_.toUpper(type)}`).join(',\n\t')}\n)\n`;
+            return `\n(\n\t${_.map(indxKey, ({name, type}) => `${name} ${_.toUpper(type)}`).join(',\n\t')}\n)\n\t`;
         }
         return _.isEmpty(column_expression) ? '' : `(${_.map(column_expression, expr => expr.value)})`;
     };
@@ -24,11 +24,12 @@ module.exports = ({ _ }) => {
     }) => {
         if (index_properties) {
             return ` ${index_properties}`;
+        } else if (index_attributes) {
+            return ` ${index_attributes}`;
         }
         return `${logging_clause ? ` ${_.toUpper(logging_clause)}` : ''}` +
             `${tablespace ? ` TABLESPACE ${tablespace}` : ''}` + 
-            `${index_compression ? ` ${index_compression}` : ''}` +
-            `${index_attributes ? ` ${index_attributes}` : ''}`;
+            `${index_compression ? ` ${index_compression}` : ''}`;
     };
 
     return {

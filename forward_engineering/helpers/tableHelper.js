@@ -13,15 +13,15 @@ module.exports = ({ _, getColumnsList, checkAllKeysDeactivated, commentIfDeactiv
         const blockchain = !_.isEmpty(blockchain_table_clauses);
         switch(true) {
             case temporary:
-                return `${_.toUpper(temporaryType)} TEMPORARY`;
+                return ` ${_.toUpper(temporaryType)} TEMPORARY`;
             case sharded:
-                return 'SHARDED';
+                return ' SHARDED';
             case duplicated:
                 return ' DUPLICATED';
             case immutable:
                 return ' IMMUTABLE ';
             case blockchain:
-                return `${blockchain_table_clauses.immutable ? 'IMMUTABLE' : ''} BLOCKCHAIN`;
+                return `${blockchain_table_clauses.immutable ? ' IMMUTABLE' : ''} BLOCKCHAIN`;
             default:
                 return '';
         }
