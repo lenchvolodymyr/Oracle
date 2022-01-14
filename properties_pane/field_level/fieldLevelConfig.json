@@ -268,11 +268,6 @@ making sure that you maintain a proper JSON format.
 			},
 			"default",
 			{
-				"propertyName": "Default constraint name",
-				"propertyKeyword": "defaultConstraintName",
-				"propertyType": "text"
-			},
-			{
 				"propertyName": "Comments",
 				"propertyKeyword": "description",
 				"propertyTooltip": "comments",
@@ -310,24 +305,18 @@ making sure that you maintain a proper JSON format.
 				"propertyTooltip": "",
 				"structure": [
 					{
-						"propertyName": "Key name",
-						"propertyKeyword": "COLUMN_ENCRYPTION_KEY",
+						"propertyName": "Algorithm",
+						"propertyKeyword": "ENCRYPTION_ALGORITHM",
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Type",
-						"propertyKeyword": "ENCRYPTION_TYPE",
-						"propertyType": "select",
-						"options": [
-							"DETERMINISTIC",
-							"RANDOMIZED"
-						],
-						"data": "options",
-						"valueType": "string"
+						"propertyName": "No Salt",
+						"propertyKeyword": "noSalt",
+						"propertyType": "checkbox"
 					},
 					{
-						"propertyName": "Algorithm",
-						"propertyKeyword": "ENCRYPTION_ALGORITHM",
+						"propertyName": "Integrity Algorithm",
+						"propertyKeyword": "INTEGRITY_ALGORITHM",
 						"propertyType": "text"
 					}
 				]
@@ -415,79 +404,45 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
@@ -574,79 +529,45 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
@@ -763,11 +684,6 @@ making sure that you maintain a proper JSON format.
 				}
 			},
 			"default",
-			{
-				"propertyName": "Default constraint name",
-				"propertyKeyword": "defaultConstraintName",
-				"propertyType": "text"
-			},
 			{
 				"propertyName": "Comments",
 				"propertyKeyword": "description",
@@ -899,79 +815,45 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
@@ -1058,79 +940,45 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
@@ -1358,79 +1206,45 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
@@ -1517,89 +1331,50 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
 			"pattern",
 			"default",
-			{
-				"propertyName": "Default constraint name",
-				"propertyKeyword": "defaultConstraintName",
-				"propertyType": "text"
-			},
 			"enum",
 			"sample",
 			{
@@ -1888,79 +1663,45 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
@@ -2047,79 +1788,45 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
@@ -2265,79 +1972,45 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
@@ -2424,79 +2097,45 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "text"
 					},
 					{
-						"propertyName": "Partition name",
-						"propertyKeyword": "partitionName",
-						"propertyType": "text"
+						"propertyName": "Defer clause",
+						"propertyKeyword": "deferClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					},
 					{
-						"propertyName": "Order",
-						"propertyKeyword": "order",
+						"propertyName": "Rely option",
+						"propertyKeyword": "rely",
 						"propertyType": "select",
 						"options": [
-							"ASC",
-							"DESC"
+							"",
+							"RELY",
+							"NO RELY"
 						]
 					},
 					{
-						"propertyName": "Statistics no recompute",
-						"propertyKeyword": "staticticsNorecompute",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Statistics incremental",
-						"propertyKeyword": "statisticsIncremental",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Ignore duplicate",
-						"propertyKeyword": "ignoreDuplicate",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow row locks",
-						"propertyKeyword": "allowRowLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Allow page locks",
-						"propertyKeyword": "allowPageLocks",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Padded",
-						"propertyKeyword": "isPadded",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Fill factor",
-						"propertyKeyword": "fillFactor",
-						"propertyType": "numeric",
-						"valueType": "number",
-						"allowNegative": false,
-						"minValue": 0,
-						"maxValue": 100
-					},
-					{
-						"propertyName": "Optimize for sequential key",
-						"propertyKeyword": "isOptimizedForSequentialKey",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Clustered",
-						"propertyKeyword": "clustered",
-						"propertyType": "checkbox"
-					},
-					{
-						"propertyName": "Data compression",
-						"propertyKeyword": "dataCompression",
+						"propertyName": "Validate option",
+						"propertyKeyword": "validate",
 						"propertyType": "select",
 						"options": [
-							"NONE",
-							"ROW",
-							"PAGE",
-							"COLUMNSTORE",
-							"COLUMNSTORE_ARCHIVE"
+							"",
+							"VALIDATE",
+							"NOVALIDATE"
 						]
+					},
+					{
+						"propertyName": "Index clause",
+						"propertyKeyword": "indexClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
+					},
+					{
+						"propertyName": "Exception clause",
+						"propertyKeyword": "exceptionClause",
+						"propertyType": "details",
+						"template": "textarea",
+						"markdown": false
 					}
 				]
 			},
@@ -2505,11 +2144,6 @@ making sure that you maintain a proper JSON format.
 			"relationshipType",
 			"pattern",
 			"default",
-			{
-				"propertyName": "Default constraint name",
-				"propertyKeyword": "defaultConstraintName",
-				"propertyType": "text"
-			},
 			"enum",
 			"sample",
 			{
