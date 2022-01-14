@@ -24,8 +24,17 @@ module.exports = ({
             .value();
     };
 
-    const getColumnConstraints = ({nullable, unique, primaryKey}) => {
-        return _.trim(`${nullable ? '' : 'NOT NULL'} ${primaryKey ? 'PRIMARY KEY' : ''} ${unique ? 'UNIQUE' : ''}`);
+    const getColumnConstraints = ({nullable, unique, primaryKey, primaryKeyOptions, uniqueKeyOptions}) => {
+        const getOptionsString = ({
+            deferClause,
+			rely,
+			validate,
+			indexClause,
+			exceptionClause,
+        }) => `${deferClause ? ` ${deferClause}` : ''}${rely ? ` ${rely}` : ''}${indexClause ? ` ${indexClause}` : ''}${validate ? ` ${validate}` : ''}${exceptionClause ? ` ${exceptionClause}` : ''}`;
+        const primaryKeyString = primaryKey ? ` PRIMARY KEY${getOptionsString(primaryKeyOptions || {})}` : '';
+        const uniqueKeyString = unique ? ` UNIQUE${getOptionsString(uniqueKeyOptions || {})}` : '';
+        return `${nullable ? '' : ' NOT NULL'}${primaryKeyString}${uniqueKeyString}`;
     };
 
     const replaceTypeByVersion = (type, version) => {
@@ -37,7 +46,7 @@ module.exports = ({
 
     const getColumnDefault = ({default: defaultValue}) => {
         if (defaultValue) {
-            return `DEFAULT ${defaultValue}`;
+            return ` DEFAULT ${defaultValue}`;
         }
         return '';
     };
@@ -45,48 +54,48 @@ module.exports = ({
     const getColumnEncrypt = ({encryption}) => {
         if (encryption && !_.isEmpty(encryption)) {
             const {
-                COLUMN_ENCRYPTION_KEY,
-                ENCRYPTION_TYPE,
                 ENCRYPTION_ALGORITHM,
+                INTEGRITY_ALGORITHM,
+                noSalt,
             } = encryption;
-            return _.trim(`ENCRYPT ${ENCRYPTION_ALGORITHM ? `USING ${ENCRYPTION_ALGORITHM}` : ''}`);
+            return ` ENCRYPT${ENCRYPTION_ALGORITHM ? ` USING ${ENCRYPTION_ALGORITHM}` : ''}${INTEGRITY_ALGORITHM ? ` ${wrapInQuotes(INTEGRITY_ALGORITHM)}` : ''}${noSalt ? ' NO SALT' : ''}`;
         }
         return '';
     };
 
     const addByteLength = (type, length, lengthSemantics) => {
-        return `${type}(${length} ${_.toUpper(lengthSemantics)})`;
+        return ` ${type}(${length} ${_.toUpper(lengthSemantics)})`;
     }
 
     const addLength = (type, length) => {
-        return `${type}(${length})`;
+        return ` ${type}(${length})`;
     };
 
     const addScalePrecision = (type, precision, scale) => {
         if (_.isNumber(scale)) {
-            return `${type}(${precision ? precision : '*'},${scale})`;
+            return ` ${type}(${precision ? precision : '*'},${scale})`;
         } else {
-            return `${type}(${precision})`;
+            return ` ${type}(${precision})`;
         }
     };
 
     const addPrecision = (type, precision) => {
         if (_.isNumber(precision)) {
-            return `${type}(${precision})`;
+            return ` ${type}(${precision})`;
         }
         return type;
     };
 
     const timestamp = (fractSecPrecision, withTimeZone, localTimeZone) => {
-        return `TIMESTAMP ${_.isNumber(fractSecPrecision) ? `(${fractSecPrecision})` : ''} WITH ${localTimeZone ? 'LOCAL' : ''} TIME ZONE`;;
+        return ` TIMESTAMP ${_.isNumber(fractSecPrecision) ? `(${fractSecPrecision})` : ''} WITH ${localTimeZone ? 'LOCAL' : ''} TIME ZONE`;;
     };
 
     const intervalYear = (yearPrecision) => {
-        return `INTERVAL YEAR ${_.isNumber(yearPrecision) ? `(${yearPrecision})` : ''} TO MONTH`;
+        return ` INTERVAL YEAR ${_.isNumber(yearPrecision) ? `(${yearPrecision})` : ''} TO MONTH`;
     };
 
     const intervalDay = (dayPrecision, fractSecPrecision) => {
-        return `INTERVAL DAY ${_.isNumber(dayPrecision) ? `(${dayPrecision})` : ''} TO SECOND ${_.isNumber(fractSecPrecision) ? `(${fractSecPrecision})` : ''}`;
+        return ` INTERVAL DAY ${_.isNumber(dayPrecision) ? `(${dayPrecision})` : ''} TO SECOND ${_.isNumber(fractSecPrecision) ? `(${fractSecPrecision})` : ''}`;
     };
 
     const canHaveByte = type => ['CHAR', 'VARCHAR2'].includes(type);

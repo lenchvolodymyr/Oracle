@@ -114,7 +114,9 @@ module.exports = (baseProvider, options, app) => {
                 size: jsonSchema.size,
                 mode: _.toUpper(jsonSchema.mode),
                 primaryKey: keyHelper.isInlinePrimaryKey(jsonSchema),
+                primaryKeyOptions: jsonSchema.primaryKeyOptions,
                 unique: keyHelper.isInlineUnique(jsonSchema),
+                uniqueKeyOptions: jsonSchema.uniqueKeyOptions,
                 nullable: columnDefinition.nullable,
                 default: columnDefinition.default,
                 comment: jsonSchema.description,
@@ -307,16 +309,16 @@ module.exports = (baseProvider, options, app) => {
 
             const columnDescriptions = getColumnComments(tableName, columnDefinitions);
             
-            const tableProps = _.trim(assignTemplates(templates.createTableProps, {
-                columnDefinitions: '\t' + _.join(columns, ',\n\t'),
+            const tableProps = assignTemplates(templates.createTableProps, {
+                columnDefinitions: _.join(columns, ',\n\t'),
                 foreignKeyConstraints: foreignKeyConstraintsString,
                 keyConstraints: keyConstraintsString,
                 checkConstraints: !_.isEmpty(checkConstraints) ? ',\n\t' + _.join(checkConstraints, ',\n\t') : '',
-            }));
+            });
 
             const tableStatement = commentIfDeactivated(assignTemplates(templates.createTable, {
                 name: tableName,
-                tableProps: tableProps ? `\n(\n${tableProps}\n)\n` : '',
+                tableProps: tableProps ? `\n(\n\t${tableProps}\n)` : '',
                 tableType: getTableType({
                     duplicated,
                     external,
@@ -350,7 +352,7 @@ module.exports = (baseProvider, options, app) => {
             const name = wrapInQuotes(index.indxName);
             const indexType = getIndexType(index.indxType);
             const keys = getIndexKeys(index);
-            const options = getIndexOptions(index, isParentActivated);
+            const options = _.trim(getIndexOptions(index, isParentActivated));
 
             return commentIfDeactivated(
                 assignTemplates(templates.createIndex, {

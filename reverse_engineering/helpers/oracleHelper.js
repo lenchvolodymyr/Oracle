@@ -553,7 +553,7 @@ const getJsonSchema = async (jsonColumns, records) => {
 		CLOB: { type: 'lobs', mode: 'clob' },
 		BLOB: { type: 'lobs', mode: 'blob' },
 		NVARCHAR2: { type: 'char', mode: 'nvarchar2' },
-		JSON: { type: 'JSON' }
+		JSON: { type: 'json' }
 	};
 	const properties = jsonColumns.reduce((properties, column) => {
 		const columnName = column['COLUMN_NAME'];
