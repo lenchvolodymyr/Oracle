@@ -107,13 +107,13 @@ module.exports = (baseProvider, options, app) => {
 
         hydrateColumn({ columnDefinition, jsonSchema, schemaData }) {
             const dbVersion = schemaData.dbVersion;
+            const type = jsonSchema.$ref ? columnDefinition.type : _.toUpper(jsonSchema.mode || jsonSchema.type);
             return {
                 name: columnDefinition.name,
-                type: jsonSchema.type || columnDefinition.type,
+                type,
                 ofType: jsonSchema.ofType,
                 notPersistable: jsonSchema.notPersistable,
                 size: jsonSchema.size,
-                mode: _.toUpper(jsonSchema.mode) || columnDefinition.type,
                 primaryKey: keyHelper.isInlinePrimaryKey(jsonSchema),
                 primaryKeyOptions: jsonSchema.primaryKeyOptions,
                 unique: keyHelper.isInlineUnique(jsonSchema),
@@ -139,12 +139,12 @@ module.exports = (baseProvider, options, app) => {
         },
 
         convertColumnDefinition(columnDefinition, template = templates.columnDefinition) {
-            const mode = replaceTypeByVersion(columnDefinition.mode, columnDefinition.dbVersion);
+            const type = replaceTypeByVersion(columnDefinition.type, columnDefinition.dbVersion);
 
             return commentIfDeactivated(
                 assignTemplates(template, {
                     name: wrapInQuotes(columnDefinition.name),
-                    type: decorateType(mode, columnDefinition),
+                    type: decorateType(type, columnDefinition),
                     default: getColumnDefault(columnDefinition),
                     encrypt: getColumnEncrypt(columnDefinition),
                     constraints: getColumnConstraints(columnDefinition),
