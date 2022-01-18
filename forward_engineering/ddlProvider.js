@@ -105,14 +105,13 @@ module.exports = (baseProvider, options, app) => {
 
         hydrateColumn({ columnDefinition, jsonSchema, schemaData }) {
             const dbVersion = schemaData.dbVersion;
-
             return {
                 name: columnDefinition.name,
-                type: jsonSchema.type,
+                type: jsonSchema.type || columnDefinition.type,
                 ofType: jsonSchema.ofType,
                 notPersistable: jsonSchema.notPersistable,
                 size: jsonSchema.size,
-                mode: _.toUpper(jsonSchema.mode),
+                mode: _.toUpper(jsonSchema.mode) || columnDefinition.type,
                 primaryKey: keyHelper.isInlinePrimaryKey(jsonSchema),
                 primaryKeyOptions: jsonSchema.primaryKeyOptions,
                 unique: keyHelper.isInlineUnique(jsonSchema),
@@ -127,6 +126,13 @@ module.exports = (baseProvider, options, app) => {
                 schemaName: schemaData.schemaName,
                 checkConstraints: jsonSchema.checkConstraints,
                 dbVersion,
+                fractSecPrecision: jsonSchema.fractSecPrecision,
+                withTimeZone: jsonSchema.withTimeZone,
+                localTimeZone: jsonSchema.localTimeZone,
+                yearPrecision: jsonSchema.yearPrecision,
+                dayPrecision: jsonSchema.dayPrecision,
+                lengthSemantics: jsonSchema.lengthSemantics,
+                encryption: jsonSchema.encryption,
             };
         },
 

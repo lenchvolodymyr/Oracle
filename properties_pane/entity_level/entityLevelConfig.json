@@ -538,7 +538,7 @@ making sure that you maintain a proper JSON format.
 									"values": [
 										{
 											"key": "partitionBy",
-											"value": ["hash"]
+											"value": ["hash", "composite hash"]
 										},
 										{
 											"key": "hashBy",
@@ -590,7 +590,7 @@ making sure that you maintain a proper JSON format.
 						"structure": [
 							{
 								"propertyName": "Hash partition clause",
-								"propertyKeyword": "individual_hash_partitions",
+								"propertyKeyword": "individual_hash_partition",
 								"propertyTooltip": "",
 								"propertyType": "details",
 								"template": "textarea",
@@ -602,7 +602,7 @@ making sure that you maintain a proper JSON format.
 							"values": [
 								{
 									"key": "partitionBy",
-									"value": ["hash"]
+									"value": ["hash", "composite hash"]
 								},
 								{
 									"key": "hashBy",
@@ -645,7 +645,7 @@ making sure that you maintain a proper JSON format.
 							"values": [
 								{
 									"key": "partitionBy",
-									"value": ["hash"]
+									"value": ["hash", "composite hash"]
 								},
 								{
 									"key": "hashBy",
@@ -670,7 +670,7 @@ making sure that you maintain a proper JSON format.
 							"values": [
 								{
 									"key": "partitionBy",
-									"value": ["hash"]
+									"value": ["hash", "composite hash"]
 								},
 								{
 									"key": "hashBy",
@@ -697,7 +697,7 @@ making sure that you maintain a proper JSON format.
 							"values": [
 								{
 									"key": "partitionBy",
-									"value": ["hash"]
+									"value": ["hash", "composite hash"]
 								},
 								{
 									"key": "hashBy",

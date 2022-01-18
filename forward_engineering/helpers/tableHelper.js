@@ -19,7 +19,7 @@ module.exports = ({ _, getColumnsList, checkAllKeysDeactivated, commentIfDeactiv
             case duplicated:
                 return ' DUPLICATED';
             case immutable:
-                return ' IMMUTABLE ';
+                return ' IMMUTABLE';
             case blockchain:
                 return `${blockchain_table_clauses.immutable ? ' IMMUTABLE' : ''} BLOCKCHAIN`;
             default:
@@ -48,9 +48,9 @@ module.exports = ({ _, getColumnsList, checkAllKeysDeactivated, commentIfDeactiv
         blockchain_row_retention_clause,
         blockchain_hash_and_data_format_clause,
     }) => {
-        return _.trim(`${blockchain_table_retention_clause || ''}` + 
-            `${blockchain_row_retention_clause || ''}` + 
-            `${blockchain_hash_and_data_format_clause || ''}`);
+        return _.trim(` ${blockchain_table_retention_clause || ''}` + 
+            ` ${blockchain_row_retention_clause || ''}` + 
+            ` ${blockchain_hash_and_data_format_clause || ''}`);
     };
 
     const getStorage = ({
@@ -62,7 +62,7 @@ module.exports = ({ _, getColumnsList, checkAllKeysDeactivated, commentIfDeactiv
             return 'ORGANIZATION EXTERNAL';
         }
         return `ORGANIZATION ${_.toUpper(organization) || 'HEAP'}` + 
-            ` ${tablespace ? `TABLESPACE ${wrapInQuotes(tablespace)}` : ''}` + 
+            `${tablespace ? ` TABLESPACE ${wrapInQuotes(tablespace)}` : ''}` + 
             ` ${logging ? 'LOGGING' : 'NOLOGGING'}`;
     }
 
@@ -85,18 +85,101 @@ module.exports = ({ _, getColumnsList, checkAllKeysDeactivated, commentIfDeactiv
                 `'${location_specifier}'`)).join(', ')})`;
         const accessParamType = access_parameter_type === 'NONE' ? '' : 
             `ACCESS PARAMETERS ${clob_subquery ? `USING CLOB ${clob_subquery}` : opaque_format_spec}`;
-        const externalData = `${default_directory && !_.isEmpty(default_directory) ? `DEFAULT DIRECTORY ${default_directory}` : ''}` + 
-            accessParamType + `${location && !_.isEmpty(location) ? `LOCATION ${locationList}` : ''}`;
+        const externalData = `${default_directory && !_.isEmpty(default_directory) ? ` DEFAULT DIRECTORY ${default_directory}` : ''}` + 
+            accessParamType + `${location && !_.isEmpty(location) ? ` LOCATION ${locationList}` : ''}`;
         return ` (TYPE ${_.toUpper(access_driver_type)} ${externalData})` +
             ` REJECT LIMIT ${reject_limit || 'UNLIMITED'} `;
     };
 
     const getPartitioning = (value, { isActivated }) => {
-        // if (value && value.partitionBy) {
-        //     const expression = getPartitionKeys(value, isActivated);
-        //     return `PARTITION BY ${value.partitionBy}${expression}`;
-        // }
+        if (value && value.partitionBy) {
+            const expression = getPartitionKeys(value, isActivated);
+            const partitionClause = getPartitionClause(value, isActivated);
+            return `PARTITION BY ${_.toUpper(_.startsWith(value.partitionBy, 'composite') ? _.last(value.partitionBy.split(' ')) : value.partitionBy)} ${expression}${partitionClause}`;
+        }
         return '';
+    };
+
+    const getPartitionKeys = (value, isParentActivated) => {
+        const isAllColumnsDeactivated = checkAllKeysDeactivated(value.partitionKey);
+        if (_.isEmpty(value.partitionKey)) {
+            return '';
+        }
+        return getColumnsList(value.partitionKey, isAllColumnsDeactivated, isParentActivated);
+    };
+
+    const getPartitionClause = (value, isActivated) => {
+        switch(value.partitionBy) {
+            case 'range':
+                return `${value.interval ? ` INTERVAL (${value.interval})` : ''}` + 
+                    getTablespaceList(value.store_in_tablespaces) +
+                    partitionsToString(value.range_partitions, 'range_partition_clause');
+			case 'list':
+                return `${value.automatic ? ` AUTOMATIC` : ''}` + 
+                    getTablespaceList(value.store_in_tablespaces) +
+                    partitionsToString(value.list_partitions, 'list_partition_clause');
+			case 'hash':
+                return getHashPartition(value);
+            case 'reference':
+                return `${value.constraint ? ` (${value.constraint})` : ''}` + 
+                    partitionsToString(value.reference_partition_descs, 'reference_partition_desc');
+			case 'system':
+                if (value.system_partitioning_quantity) {
+                    return ` PARTITIONS ${value.system_partitioning_quantity}`;
+                }
+                return partitionsToString(value.system_partition_descs, 'system_partition_desc');
+			case 'composite range': {
+                const subpartition = getSubpartition(value, isActivated);
+                return `${value.interval ? ` INTERVAL (${value.interval})` : ''}` + 
+                    getTablespaceList(value.store_in_tablespaces) +
+                    subpartition +
+                    partitionsToString(value.range_subpartition_descs, 'range_subpartition_desc');
+            } 
+            case 'composite list': {
+                const subpartition = getSubpartition(value, isActivated);
+                return getTablespaceList(value.store_in_tablespaces, 'AUTOMATIC') +
+                    subpartition +
+                    partitionsToString(value.list_subpartition_descs, 'list_subpartition_description');
+            }
+			case 'composite hash': {
+                const subpartition = getSubpartition(value, isActivated);
+                const hashPartition = getHashPartition(value);
+                return `${subpartition}${hashPartition}`;
+            }
+            default:
+                return '';
+        }
+    };
+
+    const partitionsToString = (partitions, key) => {
+        if (partitions && _.isArray(partitions) && !_.isEmpty(partitions)) {
+            return `\n(\n\t${(key ? _.map(partitions, p => p[key]) : partitions).join(',\n\t')}\n)\n`;
+        }
+        return '';
+    };
+
+    const getSubpartition = ({subpartitionType, partitionKey}, isParentActivated) => {
+        if (subpartitionType) {
+            const isAllColumnsDeactivated = checkAllKeysDeactivated(partitionKey);
+            return ` SUBPARTITION BY ${_.toUpper(subpartitionType)} ${getColumnsList(partitionKey, isAllColumnsDeactivated, isParentActivated)}`;
+        }
+        return '';
+    };
+
+    const getTablespaceList = (store_in_tablespaces, word, key='store_in_tablespace') => !_.isEmpty(store_in_tablespaces) ? `${word ? ` ${word}`: ''} STORE IN (${_.map(store_in_tablespaces, val => val[key]).join(', ')})` : '';
+
+    const getHashPartition = ({
+        hash_partition_quantity, 
+        store_in_tablespaces, 
+        overflow_store_in_tablespaces,
+        individual_hash_partitions,
+    }) => {
+        if (hash_partition_quantity) {
+            return ` PARTITIONS ${hash_partition_quantity}` + 
+                getTablespaceList(store_in_tablespaces) +
+                getTablespaceList(overflow_store_in_tablespaces, 'OVERFLOW', 'overflow_store_in_tablespace');
+            }
+        return partitionsToString(individual_hash_partitions, 'individual_hash_partition');
     };
 
     const getBasicValue = prefix => value => {
