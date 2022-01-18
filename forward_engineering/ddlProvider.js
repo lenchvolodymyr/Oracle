@@ -64,6 +64,7 @@ module.exports = (baseProvider, options, app) => {
         assignTemplates,
         templates,
         getNamePrefixedWithSchemaName,
+        wrapInQuotes,
     });
 
     const { getViewType, getViewData } = require('./helpers/viewHelper')({
@@ -73,6 +74,7 @@ module.exports = (baseProvider, options, app) => {
 
     const { getIndexType, getIndexKeys, getIndexOptions } = require('./helpers/indexHelper')({
         _,
+        wrapInQuotes,
     });
     
     return {
@@ -105,14 +107,13 @@ module.exports = (baseProvider, options, app) => {
 
         hydrateColumn({ columnDefinition, jsonSchema, schemaData }) {
             const dbVersion = schemaData.dbVersion;
-
+            const type = jsonSchema.$ref ? columnDefinition.type : _.toUpper(jsonSchema.mode || jsonSchema.type);
             return {
                 name: columnDefinition.name,
-                type: jsonSchema.type,
+                type,
                 ofType: jsonSchema.ofType,
                 notPersistable: jsonSchema.notPersistable,
                 size: jsonSchema.size,
-                mode: _.toUpper(jsonSchema.mode),
                 primaryKey: keyHelper.isInlinePrimaryKey(jsonSchema),
                 primaryKeyOptions: jsonSchema.primaryKeyOptions,
                 unique: keyHelper.isInlineUnique(jsonSchema),
@@ -127,16 +128,23 @@ module.exports = (baseProvider, options, app) => {
                 schemaName: schemaData.schemaName,
                 checkConstraints: jsonSchema.checkConstraints,
                 dbVersion,
+                fractSecPrecision: jsonSchema.fractSecPrecision,
+                withTimeZone: jsonSchema.withTimeZone,
+                localTimeZone: jsonSchema.localTimeZone,
+                yearPrecision: jsonSchema.yearPrecision,
+                dayPrecision: jsonSchema.dayPrecision,
+                lengthSemantics: jsonSchema.lengthSemantics,
+                encryption: jsonSchema.encryption,
             };
         },
 
         convertColumnDefinition(columnDefinition, template = templates.columnDefinition) {
-            const mode = replaceTypeByVersion(columnDefinition.mode, columnDefinition.dbVersion);
+            const type = replaceTypeByVersion(columnDefinition.type, columnDefinition.dbVersion);
 
             return commentIfDeactivated(
                 assignTemplates(template, {
                     name: wrapInQuotes(columnDefinition.name),
-                    type: decorateType(mode, columnDefinition),
+                    type: decorateType(type, columnDefinition),
                     default: getColumnDefault(columnDefinition),
                     encrypt: getColumnEncrypt(columnDefinition),
                     constraints: getColumnConstraints(columnDefinition),

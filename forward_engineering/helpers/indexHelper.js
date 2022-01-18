@@ -1,4 +1,4 @@
-module.exports = ({ _ }) => {
+module.exports = ({ _, wrapInQuotes }) => {
     const getIndexType = (indexType) => {
         return indexType ? ` ${_.toUpper(indexType)}` : '';
     };
@@ -8,7 +8,7 @@ module.exports = ({ _ }) => {
         column_expression,
     }) => {
         if (_.isArray(indxKey) && !_.isEmpty(indxKey)) {
-            return `\n(\n\t${_.map(indxKey, ({name, type}) => `${name} ${_.toUpper(type)}`).join(',\n\t')}\n)\n\t`;
+            return `\n(\n\t${_.map(indxKey, ({name, type}) => `${wrapInQuotes(name)} ${_.toUpper(type)}`).join(',\n\t')}\n)\n\t`;
         }
         return _.isEmpty(column_expression) ? '' : `(${_.map(column_expression, expr => expr.value)})`;
     };
