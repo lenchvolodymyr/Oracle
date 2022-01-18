@@ -73,6 +73,7 @@ module.exports = (baseProvider, options, app) => {
 
     const { getIndexType, getIndexKeys, getIndexOptions } = require('./helpers/indexHelper')({
         _,
+        wrapInQuotes,
     });
     
     return {
