@@ -64,6 +64,7 @@ module.exports = (baseProvider, options, app) => {
         assignTemplates,
         templates,
         getNamePrefixedWithSchemaName,
+        wrapInQuotes,
     });
 
     const { getViewType, getViewData } = require('./helpers/viewHelper')({
