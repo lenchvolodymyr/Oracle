@@ -17,7 +17,9 @@
 				"lobs",
 				"rowid",
 				"reference",
-				"multiple"
+				"multiple",
+				"object_udt",
+				"collection_udt"
 			]
 		}
 	}

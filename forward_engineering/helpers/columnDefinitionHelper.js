@@ -58,7 +58,7 @@ module.exports = ({
                 INTEGRITY_ALGORITHM,
                 noSalt,
             } = encryption;
-            return ` ENCRYPT${ENCRYPTION_ALGORITHM ? ` USING ${ENCRYPTION_ALGORITHM}` : ''}${INTEGRITY_ALGORITHM ? ` ${wrapInQuotes(INTEGRITY_ALGORITHM)}` : ''}${noSalt ? ' NO SALT' : ''}`;
+            return ` ENCRYPT${ENCRYPTION_ALGORITHM ? ` USING '${ENCRYPTION_ALGORITHM}'` : ''}${INTEGRITY_ALGORITHM ? ` '${INTEGRITY_ALGORITHM}'` : ''}${noSalt ? ' NO SALT' : ''}`;
         }
         return '';
     };
@@ -74,8 +74,10 @@ module.exports = ({
     const addScalePrecision = (type, precision, scale) => {
         if (_.isNumber(scale)) {
             return ` ${type}(${precision ? precision : '*'},${scale})`;
-        } else {
+        } else if (_.isNumber(precision)) {
             return ` ${type}(${precision})`;
+        } else {
+            return ` ${type}`;
         }
     };
 
@@ -83,19 +85,19 @@ module.exports = ({
         if (_.isNumber(precision)) {
             return ` ${type}(${precision})`;
         }
-        return type;
+        return ` ${type}`;
     };
 
     const timestamp = (fractSecPrecision, withTimeZone, localTimeZone) => {
-        return ` TIMESTAMP ${_.isNumber(fractSecPrecision) ? `(${fractSecPrecision})` : ''} WITH ${localTimeZone ? 'LOCAL' : ''} TIME ZONE`;;
+        return ` TIMESTAMP${_.isNumber(fractSecPrecision) ? `(${fractSecPrecision})` : ''}${withTimeZone ? ` WITH${localTimeZone ? ' LOCAL' : ''} TIME ZONE` : ''}`;;
     };
 
     const intervalYear = (yearPrecision) => {
-        return ` INTERVAL YEAR ${_.isNumber(yearPrecision) ? `(${yearPrecision})` : ''} TO MONTH`;
+        return ` INTERVAL YEAR${_.isNumber(yearPrecision) ? `(${yearPrecision})` : ''} TO MONTH`;
     };
 
     const intervalDay = (dayPrecision, fractSecPrecision) => {
-        return ` INTERVAL DAY ${_.isNumber(dayPrecision) ? `(${dayPrecision})` : ''} TO SECOND ${_.isNumber(fractSecPrecision) ? `(${fractSecPrecision})` : ''}`;
+        return ` INTERVAL DAY${_.isNumber(dayPrecision) ? `(${dayPrecision})` : ''} TO SECOND${_.isNumber(fractSecPrecision) ? `(${fractSecPrecision})` : ''}`;
     };
 
     const canHaveByte = type => ['CHAR', 'VARCHAR2'].includes(type);
@@ -108,11 +110,11 @@ module.exports = ({
 
     const decorateType = (type, columnDefinition) => {
         switch(true) {
-            case (canHaveByte(type) && canHaveLength(type) && _.isNumber(columnDefinition.length) && columnDefinition.lengthSemantics):
+            case (columnDefinition.lengthSemantics && canHaveByte(type) && canHaveLength(type) && _.isNumber(columnDefinition.length)):
                 return addByteLength(type, columnDefinition.length, columnDefinition.lengthSemantics);
             case (canHaveLength(type) && _.isNumber(columnDefinition.length)):
                 return addLength(type, columnDefinition.length);
-            case (canHavePrecision(type) && canHaveScale(type) && _.isNumber(columnDefinition.precision)):
+            case (canHavePrecision(type) && canHaveScale(type)):
                 return addScalePrecision(type, columnDefinition.precision, columnDefinition.scale);
             case (canHavePrecision(type) && _.isNumber(columnDefinition.precision)):
                 return addPrecision(type, columnDefinition.precision);
@@ -123,7 +125,7 @@ module.exports = ({
             case (isIntervalDay(type)):
                 return intervalDay(columnDefinition.dayPrecision, columnDefinition.fractSecPrecision);
             default:
-                return type;
+                return ` ${type}`;
         }
     }; 
 
