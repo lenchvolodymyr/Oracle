@@ -192,6 +192,7 @@ const connect = async ({
 	ssh_key_file,
 	ssh_key_passphrase,
 	ssh_password,
+	authRole,
 }, logger) => {
 	if (connection) {
 		return connection;
@@ -262,7 +263,7 @@ const connect = async ({
 		credentials.password = userPassword;
 	}
 
-	return authByCredentials({ connectString, username: userName, password: userPassword, queryRequestTimeout });
+	return authByCredentials({ connectString, username: userName, password: userPassword, queryRequestTimeout, authRole  });
 };
 
 const disconnect = async () => {
@@ -285,12 +286,13 @@ const disconnect = async () => {
 	});
 };
 
-const authByCredentials = ({ connectString, username, password, queryRequestTimeout }) => {
+const authByCredentials = ({ connectString, username, password, queryRequestTimeout, authRole }) => {
 	return new Promise((resolve, reject) => {
 		oracleDB.getConnection({
 			username,
 			password,
 			connectString,
+			privilege: authRole === 'default' ? undefined : oracleDB[authRole],
 		}, (err, conn) => {
 			if (err) {
 				connection = null;
@@ -496,8 +498,8 @@ const readRecordsValues = async (records) => {
 };
 
 const escapeName = (name) => {
-	if (name.includes(' ')) {
-		return `'${name}'`;
+	if (/[\s\da-z]/.test(name)) {
+		return `"${name}"`;
 	}
 
 	return name;
@@ -514,8 +516,8 @@ const replaceNames = (columns, records) => {
 	});
 };
 
-const selectRecords = async ({ tableName, limit, jsonColumns }) => {
-	const records = await execute(`SELECT ${jsonColumns.map((c) => escapeName(c['COLUMN_NAME'])).join(', ')} FROM ${tableName} FETCH NEXT ${limit} ROWS ONLY`, {
+const selectRecords = async ({ tableName, limit, jsonColumns, schema }) => {
+	const records = await execute(`SELECT ${jsonColumns.map((c) => escapeName(c['COLUMN_NAME'])).join(', ')} FROM ${escapeName(schema)}.${escapeName(tableName)} FETCH NEXT ${limit} ROWS ONLY`, {
 		outFormat: oracleDB.OBJECT,
 	});
 
@@ -612,6 +614,15 @@ const getViewDDL = async (viewName, logger) => {
 	}
 };
 
+const logEnvironment = (logger) => {
+	logger.log('info', {
+		TNS_ADMIN: process.env.TNS_ADMIN ?? '',
+		ORACLE_HOME: process.env.ORACLE_HOME ?? '',
+		LD_LIBRARY_PATH: process.env.LD_LIBRARY_PATH ?? '',
+		ORACLE_BASE: process.env.ORACLE_BASE ?? '',
+	}, 'Environment variables');
+};
+
 module.exports = {
 	connect,
 	disconnect,
@@ -626,4 +637,6 @@ module.exports = {
 	getDbVersion,
 	getJsonColumns,
 	selectRecords,
+	logEnvironment,
+	execute,
 };

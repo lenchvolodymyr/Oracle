@@ -10,12 +10,7 @@ module.exports = {
 		initDependencies(app);
 		logger.clear();
 		logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
-		logger.log('info', {
-			TNS_ADMIN: process.env.TNS_ADMIN ?? '',
-			ORACLE_HOME: process.env.ORACLE_HOME ?? '',
-			LD_LIBRARY_PATH: process.env.LD_LIBRARY_PATH ?? '',
-			ORACLE_BASE: process.env.ORACLE_BASE ?? '',
-		}, 'Environment variables');
+		oracleHelper.logEnvironment(logger);
 		try {
 			await oracleHelper.connect(connectionInfo, (message) => {
 				logger.log('info', message, 'Connection');
@@ -100,7 +95,7 @@ module.exports = {
 	
 						progress({ message: `Fetching columns for JSON schema inference: ${jsonColumns.map(c => c['COLUMN_NAME'])}`, containerName: schema, entityName: table });
 
-						documents = await oracleHelper.selectRecords({ tableName: table, limit: quantity, jsonColumns });
+						documents = await oracleHelper.selectRecords({ tableName: table, limit: quantity, jsonColumns, schema });
 						jsonSchema = await oracleHelper.getJsonSchema(jsonColumns, documents);
 					}
 					
@@ -151,7 +146,7 @@ module.exports = {
 					return [...packages, ...tablesPackages];
 				}
 
-				const viewPackage = await Promise.resolve({
+				const viewPackage = {
 					dbName: schema,
 					entityLevel: {},
 					views,
@@ -160,7 +155,7 @@ module.exports = {
 						indexes: [],
 						database: schema,
 					}
-				});
+				};
 				return [ ...packages, ...tablesPackages, viewPackage ];
 			}, Promise.resolve([]));
 

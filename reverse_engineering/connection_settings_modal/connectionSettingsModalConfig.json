@@ -149,6 +149,21 @@
 				"validation": {
 					"regex": "([^\\s])"
 				}
+			},
+			{
+				"inputLabel": "Role",
+				"inputKeyword": "authRole",
+				"inputType": "select",
+				"defaultValue": "default",
+				"options": [
+					{ "value": "default", "label": "default" },
+					{ "value": "SYSDBA", "label": "SYSDBA" },
+					{ "value": "SYSOPER", "label": "SYSOPER" },
+					{ "value": "SYSBACKUP", "label": "SYSBACKUP" },
+					{ "value": "SYSDG", "label": "SYSDG" },
+					{ "value": "SYSKM", "label": "SYSKM" },
+					{ "value": "SYSASM", "label": "SYSASM" }
+				]
 			}
 		]
 	},
