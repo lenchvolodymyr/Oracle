@@ -151,7 +151,7 @@ module.exports = {
 					return [...packages, ...tablesPackages];
 				}
 
-				const viewPackage = Promise.resolve({
+				const viewPackage = await Promise.resolve({
 					dbName: schema,
 					entityLevel: {},
 					views,
