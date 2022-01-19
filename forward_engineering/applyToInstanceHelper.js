@@ -32,7 +32,7 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 				return;
 			}
 			error = err;
-			logger.progress({ message: '[color=red] Not executed...' });
+			logger.progress({ message: '[color:red]Not executed...' });
 			logger.log('error', { message: err.message, stack: err.stack, query }, 'Error applying to instance');
 		}
 	});
