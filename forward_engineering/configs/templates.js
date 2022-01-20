@@ -23,7 +23,7 @@ module.exports = {
 
     createIndex: 'CREATE${indexType} INDEX ${name} ON ${tableName}${keys}${options};\n',
 
-    createView: 'CREATE${orReplace} VIEW${force}${viewType} ${name} \n\tAS ${selectStatement};\n${comment}\n',
+    createView: 'CREATE${orReplace}${force}${viewType} VIEW ${name} \n\tAS ${selectStatement};\n${comment}\n',
 
     viewSelectStatement: 'SELECT ${keys}\n\tFROM ${tableName}',
 
