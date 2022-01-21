@@ -311,28 +311,25 @@ const authByCredentials = ({ connectString, username, password, queryRequestTime
 
 const pairToObj = (pairs) => _.reduce(pairs, (obj, pair) => ({ ...obj, [pair[0]]: [...(obj[pair[0]] || []), pair[1]] }), {});
 
-const selectEntities = (selectStatement, includeSystemCollection, userName) => {
+const selectEntities = (selectStatement, includeSystemCollection, schemaName) => {
+	let stmt = '';
+	if (schemaName) {
+		stmt = `T.OWNER = '${schemaName}'`;
+	}
 	if (includeSystemCollection) {
-		return execute(selectStatement);
+		return execute(`${selectStatement}${stmt ? ` WHERE ${stmt}`: ''}`);
 	} else {
-		return execute(`${selectStatement} WHERE T.OWNER = :userName`, {}, [userName]);
+		return execute(`${selectStatement} INNER JOIN ALL_USERS U ON T.OWNER = U.USERNAME WHERE U.ORACLE_MAINTAINED = 'N'${stmt ? ` AND ${stmt}`: ''}`);
 	}
 };
 
-const tableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T`, includeSystemCollection, userName);
-const externalTableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T`, includeSystemCollection, userName);
-const viewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T`, includeSystemCollection, userName);
-const materializedViewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.MVIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, userName);
-
-const getCurrentUserName = async () => {
-	const currentUser = await execute(`SELECT USER FROM DUAL`, { outFormat: oracleDB.OBJECT });
-
-	return currentUser?.[0]?.USER;
-};
+const tableNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T`, includeSystemCollection, schemaName);
+const externalTableNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T`, includeSystemCollection, schemaName);
+const viewNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T`, includeSystemCollection, schemaName);
+const materializedViewNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.MVIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, schemaName);
 
 const getEntitiesNames = async (connectionInfo,logger) => {
-	const currentUser = await getCurrentUserName();
-	const tables = await tableNamesByUser(connectionInfo, currentUser).catch(e => {
+	const tables = await tableNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve tables' });
 		logger.error(e);
 		return [];
@@ -340,7 +337,7 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 
 	logger.info({ tables });
 
-	const externalTables = await externalTableNamesByUser(connectionInfo, currentUser).catch(e => {
+	const externalTables = await externalTableNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve external tables' });
 		logger.error(e);
 
@@ -349,7 +346,7 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 
 	logger.info({ externalTables });
 
-	const views = await viewNamesByUser(connectionInfo, currentUser).catch(e => {
+	const views = await viewNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve views' });
 		logger.error(e);
 
@@ -358,7 +355,7 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 
 	logger.info({ views });
 
-	const materializedViews = await materializedViewNamesByUser(connectionInfo, currentUser).catch(e => {
+	const materializedViews = await materializedViewNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve materialized views' });
 		logger.error(e);
 

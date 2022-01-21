@@ -112,9 +112,7 @@
 				"inputType": "select",
 				"defaultValue": "Username / Password",
 				"options": [
-					{ "value": "Username / Password", "label": "Username / Password" },
-					{ "value": "OS", "label": "OS" },
-					{ "value": "Kerberos", "label": "Kerberos" }
+					{ "value": "Username / Password", "label": "Username / Password" }
 				]
 			},
 			{
@@ -275,11 +273,11 @@
 		"tab": "Advanced",
 		"structure": [
 			{
-				"inputLabel": "Database name",
-				"inputKeyword": "databaseName",
+				"inputLabel": "Schema name",
+				"inputKeyword": "schemaName",
 				"inputType": "text",
-				"inputPlaceholder": "Database name",
-				"description": "Optionally specify a database name to limit the scope of discovery",
+				"inputPlaceholder": "Schema name",
+				"description": "Optionally specify a schema name to limit the scope of discovery",
 				"regex": "([^\\s])"
 			}
 		]
