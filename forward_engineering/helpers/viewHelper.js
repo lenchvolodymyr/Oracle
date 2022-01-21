@@ -3,7 +3,7 @@ module.exports = ({ _, wrapInQuotes }) => {
         editioning,
         editionable
     }) => {
-        return ` ${editionable ? 'EDITIONABLE ' : ''}${editioning ? 'EDITIONING' : ''}`;
+        return `${editionable ? ' EDITIONABLE' : ''}${editioning ? ' EDITIONING' : ''}`;
     };
 
     const getKeyWithAlias = key => {
