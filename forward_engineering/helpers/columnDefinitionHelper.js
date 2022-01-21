@@ -52,7 +52,7 @@ module.exports = ({
     };
 
     const getColumnEncrypt = ({encryption}) => {
-        if (encryption && !_.isEmpty(encryption)) {
+        if (_.isPlainObject(encryption) && !_.isEmpty(_.omit(encryption, 'id'))) {
             const {
                 ENCRYPTION_ALGORITHM,
                 INTEGRITY_ALGORITHM,
