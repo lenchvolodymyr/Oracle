@@ -431,9 +431,9 @@ const splitEntityNames = names => {
 	return { views: namesByCategory[0].map(name => name.slice(0, -4)), tables: namesByCategory[1] };
 };
 
-const getDDL = async (tableName, logger) => {
+const getDDL = async (tableName, schema, logger) => {
 	try {
-		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) FROM ALL_TABLES WHERE TABLE_NAME='${tableName}'`);
+		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) FROM ALL_TABLES WHERE TABLE_NAME='${tableName}' AND OWNER='${schema}'`);
 		const ddl = await _.first(_.first(queryResult)).getData();
 
 		if (!/;\s*$/.test(ddl)) {
@@ -450,8 +450,8 @@ const getDDL = async (tableName, logger) => {
 	}
 };
 
-const getJsonColumns = async tableName => {
-	const result = await execute(`SELECT * FROM all_tab_columns WHERE TABLE_NAME='${tableName}' AND DATA_TYPE IN ('CLOB', 'BLOB', 'NVARCHAR2', 'JSON')`, {
+const getJsonColumns = async (tableName, schema) => {
+	const result = await execute(`SELECT * FROM all_tab_columns WHERE TABLE_NAME='${tableName}' AND OWNER='${schema}' AND DATA_TYPE IN ('CLOB', 'BLOB', 'NVARCHAR2', 'JSON')`, {
 		outFormat: oracleDB.OBJECT,
 	});
 
