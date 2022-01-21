@@ -9,7 +9,7 @@
 		}
 	],
 	"hasUpdateScript": false,
-	"applyScriptToInstance": false,
+	"applyScriptToInstance": true,
 	"combinedContainers": true,
 	"feLevelSelector": {
 		"container": true,

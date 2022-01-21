@@ -149,19 +149,21 @@
 				"validation": {
 					"regex": "([^\\s])"
 				}
-			}
-		]
-	},
-	{
-		"tab": "Advanced",
-		"structure": [
+			},
 			{
-				"inputLabel": "Database name",
-				"inputKeyword": "databaseName",
-				"inputType": "text",
-				"inputPlaceholder": "Database name",
-				"description": "Optionally specify a database name to limit the scope of discovery",
-				"regex": "([^\\s])"
+				"inputLabel": "Role",
+				"inputKeyword": "authRole",
+				"inputType": "select",
+				"defaultValue": "default",
+				"options": [
+					{ "value": "default", "label": "default" },
+					{ "value": "SYSDBA", "label": "SYSDBA" },
+					{ "value": "SYSOPER", "label": "SYSOPER" },
+					{ "value": "SYSBACKUP", "label": "SYSBACKUP" },
+					{ "value": "SYSDG", "label": "SYSDG" },
+					{ "value": "SYSKM", "label": "SYSKM" },
+					{ "value": "SYSASM", "label": "SYSASM" }
+				]
 			}
 		]
 	},
@@ -266,6 +268,19 @@
 					"key": "ssh",
 					"value": false
 				}
+			}
+		]
+	},
+	{
+		"tab": "Advanced",
+		"structure": [
+			{
+				"inputLabel": "Database name",
+				"inputKeyword": "databaseName",
+				"inputType": "text",
+				"inputPlaceholder": "Database name",
+				"description": "Optionally specify a database name to limit the scope of discovery",
+				"regex": "([^\\s])"
 			}
 		]
 	}
