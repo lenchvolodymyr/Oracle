@@ -84,8 +84,8 @@ module.exports = {
 					const result = await next;
 
 					progress({ message: `Start getting data from table`, containerName: schema, entityName: table });
-					const ddl = await oracleHelper.getDDL(table, logger);
-					const jsonColumns =  await oracleHelper.getJsonColumns(table);
+					const ddl = await oracleHelper.getDDL(table, schema, logger);
+					const jsonColumns =  await oracleHelper.getJsonColumns(table, schema);
 					let documents = [];
 					let jsonSchema = {};
 
