@@ -96,6 +96,7 @@ module.exports = {
 						progress({ message: `Fetching columns for JSON schema inference: ${jsonColumns.map(c => c['COLUMN_NAME'])}`, containerName: schema, entityName: table });
 
 						documents = await oracleHelper.selectRecords({ tableName: table, limit: quantity, jsonColumns, schema });
+						documents = _.map(documents, obj => _.omitBy(obj, _.isNull));
 						jsonSchema = await oracleHelper.getJsonSchema(jsonColumns, documents);
 					}
 					
