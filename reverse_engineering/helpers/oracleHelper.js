@@ -136,7 +136,7 @@ const getConnectionDescription = ({
 	httpsProxy,
 	httpsProxyPort,
 }) => {
-	const str = `(DESCRIPTION=
+	const connectionString = `(DESCRIPTION=
 		(ADDRESS=
 			(PROTOCOL=${protocol || 'tcp'})
 			(HOST=${host})
@@ -148,7 +148,8 @@ const getConnectionDescription = ({
 					${combine(service, `(SERVICE_NAME=${service})`)}
 		)
 	)`
-	return str;
+	logger({ message: 'connectionString', connectionString });
+	return connectionString;
 };
 
 const getSshConnectionString = async (data, logger) => {
