@@ -55,10 +55,13 @@ const parseProxyOptions = (proxyString = '') => {
 	const result = proxyString.match(/http:\/\/(?:.*?:.*?@)?(.*?):(\d+)/i);
 
 	if (!result) {
-		return '';
+		return {};
 	}
 
-	return `?https_proxy=${result[1]}&https_proxy_port=${result[2]}`;
+	return {
+		httpsProxy: result[1],
+		httpsProxyPort: result[2],
+	};
 };
 
 const getTnsNamesOraFile = (configDir) => {
@@ -85,11 +88,10 @@ const getTnsNamesOraFile = (configDir) => {
 const parseTnsNamesOra = (filePath) => {
 	const content = fs.readFileSync(filePath).toString();
 	const result = parseTns(content);
-
 	return result;
 };
 
-const getConnectionStringByTnsNames = (configDir, serviceName, logger) => {
+const getConnectionStringByTnsNames = (configDir, serviceName, proxy, logger) => {
 	const filePath = getTnsNamesOraFile(configDir);
 
 	if (!fs.existsSync(filePath)) {
@@ -110,10 +112,43 @@ const getConnectionStringByTnsNames = (configDir, serviceName, logger) => {
 
 	const address = tnsData[serviceName]?.data?.description?.address;
 	const service = tnsData[serviceName]?.data?.description?.connect_data?.service_name;
+	const sid = tnsData[data.serviceName]?.data?.description?.connect_data?.sid;
 
 	logger({ message: 'tnsnames.ora', address, service });
 
-	return `${address?.protocol || 'tcps'}://${address?.host}:${address?.port}/${service || serviceName}`;
+	return getConnectionDescription(_.omitBy({
+		...address,
+		...proxy,
+		protocol: address?.protocol || 'tcps',
+		service: service || serviceName,
+		sid: sid,
+	}, _.isUndefined));
+};
+
+const combine = (val, str) => val ? str : '';
+
+const getConnectionDescription = ({
+	protocol,
+	host,
+	port,
+	sid,
+	service,
+	httpsProxy,
+	httpsProxyPort,
+}) => {
+	const str = `(DESCRIPTION=
+		(ADDRESS=
+			(PROTOCOL=${protocol || 'tcp'})
+			(HOST=${host})
+			(PORT=${port}))
+			${combine(httpsProxy, `(HTTPS_PROXY=${httpsProxy})`)}
+			${combine(httpsProxyPort, `(HTTPS_PROXY_PORT=${httpsProxyPort})`)}
+		(CONNECT_DATA=
+					${combine(sid, `(SID=${sid})`)}
+					${combine(service, `(SERVICE_NAME=${service})`)}
+		)
+	)`
+	return str;
 };
 
 const getSshConnectionString = async (data, logger) => {
@@ -141,19 +176,22 @@ const getSshConnectionString = async (data, logger) => {
 
 		const address = tnsData[data.serviceName]?.data?.description?.address;
 		const service = tnsData[data.serviceName]?.data?.description?.connect_data?.service_name;
+		const sid = tnsData[data.serviceName]?.data?.description?.connect_data?.sid;
 
 		logger({ message: 'tnsnames.ora', address, service });
 
 
-		connectionData.protocol = address?.protocol + '://';
+		connectionData.protocol = address?.protocol;
 		connectionData.host = address?.host;
 		connectionData.port = address?.port;
 		connectionData.service = service || data.serviceName;
+		connectionData.sid = sid;
 	} else {
 		connectionData.host = data.host;
 		connectionData.port = data.port;
-		connectionData.service = data.databaseName;
-	}
+		connectionData.service = data.serviceName,
+		connectionData.sid = data.sid;
+		}
 
 	const { tunnel, info } = await connectViaSsh({
 		...data.sshConfig,
@@ -163,7 +201,11 @@ const getSshConnectionString = async (data, logger) => {
 
 	sshTunnel = tunnel;
 
-	return `${connectionData.protocol}${info.host}:${info.port}/${connectionData.service}`;
+	return getConnectionDescription({
+		...connectionData,
+		host: info.host,
+		port: info.port,
+	});
 };
 
 const connect = async ({
@@ -176,14 +218,13 @@ const connect = async ({
 	port,
 	userName,
 	userPassword,
-	databaseName,
 	serviceName,
 	clientPath,
 	clientType,
 	queryRequestTimeout,
 	authMethod,
 	options,
-
+	sid,
 	ssh,
 	ssh_user,
 	ssh_host,
@@ -224,12 +265,17 @@ const connect = async ({
 
 	if (['Wallet', 'TNS'].includes(connectionMethod)) {
 		if (proxy) {
-			connectString = getConnectionStringByTnsNames(configDir, serviceName, logger) + proxy;
+			connectString = getConnectionStringByTnsNames(configDir, serviceName, proxy, logger);
 		} else {
 			connectString = serviceName;
 		}
 	} else {
-		connectString = `${host}:${port}/${databaseName}`;
+		connectString = getConnectionDescription({
+			host,
+			port,
+			sid,
+			service: serviceName,
+		});
 	}
 
 	if (ssh) {
@@ -238,8 +284,8 @@ const connect = async ({
 			port,
 			configDir,
 			serviceName,
+			sid,
 			connectionMethod,
-			databaseName,
 			sshConfig: {
 				ssh_user,
 				ssh_host,

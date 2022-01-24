@@ -92,12 +92,17 @@
 				"inputLabel": "Service Name",
 				"inputKeyword": "serviceName",
 				"description": "Specify the service name of the Oracle Instance",
+				"inputType": "text"
+			},
+			{
+				"inputLabel": "SID",
+				"inputKeyword": "sid",
+				"description": "Optionally specify the sid of the Oracle Instance",
 				"inputType": "text",
 				"dependency": {
 					"key": "connectionMethod",
 					"value": [
-						"Wallet",
-						"TNS"
+						"Basic"
 					]
 				}
 			}
