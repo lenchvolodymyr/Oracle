@@ -55,10 +55,13 @@ const parseProxyOptions = (proxyString = '') => {
 	const result = proxyString.match(/http:\/\/(?:.*?:.*?@)?(.*?):(\d+)/i);
 
 	if (!result) {
-		return '';
+		return {};
 	}
 
-	return `?https_proxy=${result[1]}&https_proxy_port=${result[2]}`;
+	return {
+		httpsProxy: result[1],
+		httpsProxyPort: result[2],
+	};
 };
 
 const getTnsNamesOraFile = (configDir) => {
@@ -85,11 +88,10 @@ const getTnsNamesOraFile = (configDir) => {
 const parseTnsNamesOra = (filePath) => {
 	const content = fs.readFileSync(filePath).toString();
 	const result = parseTns(content);
-
 	return result;
 };
 
-const getConnectionStringByTnsNames = (configDir, serviceName, logger) => {
+const getConnectionStringByTnsNames = (configDir, serviceName, proxy, logger) => {
 	const filePath = getTnsNamesOraFile(configDir);
 
 	if (!fs.existsSync(filePath)) {
@@ -110,10 +112,44 @@ const getConnectionStringByTnsNames = (configDir, serviceName, logger) => {
 
 	const address = tnsData[serviceName]?.data?.description?.address;
 	const service = tnsData[serviceName]?.data?.description?.connect_data?.service_name;
+	const sid = tnsData[data.serviceName]?.data?.description?.connect_data?.sid;
 
 	logger({ message: 'tnsnames.ora', address, service });
 
-	return `${address?.protocol || 'tcps'}://${address?.host}:${address?.port}/${service || serviceName}`;
+	return getConnectionDescription(_.omitBy({
+		...address,
+		...proxy,
+		protocol: address?.protocol || 'tcps',
+		service: service || serviceName,
+		sid: sid,
+	}, _.isUndefined));
+};
+
+const combine = (val, str) => val ? str : '';
+
+const getConnectionDescription = ({
+	protocol,
+	host,
+	port,
+	sid,
+	service,
+	httpsProxy,
+	httpsProxyPort,
+}) => {
+	const connectionString = `(DESCRIPTION=
+		(ADDRESS=
+			(PROTOCOL=${protocol || 'tcp'})
+			(HOST=${host})
+			(PORT=${port}))
+			${combine(httpsProxy, `(HTTPS_PROXY=${httpsProxy})`)}
+			${combine(httpsProxyPort, `(HTTPS_PROXY_PORT=${httpsProxyPort})`)}
+		(CONNECT_DATA=
+					${combine(sid, `(SID=${sid})`)}
+					${combine(service, `(SERVICE_NAME=${service})`)}
+		)
+	)`
+	logger({ message: 'connectionString', connectionString });
+	return connectionString;
 };
 
 const getSshConnectionString = async (data, logger) => {
@@ -141,19 +177,22 @@ const getSshConnectionString = async (data, logger) => {
 
 		const address = tnsData[data.serviceName]?.data?.description?.address;
 		const service = tnsData[data.serviceName]?.data?.description?.connect_data?.service_name;
+		const sid = tnsData[data.serviceName]?.data?.description?.connect_data?.sid;
 
 		logger({ message: 'tnsnames.ora', address, service });
 
 
-		connectionData.protocol = address?.protocol + '://';
+		connectionData.protocol = address?.protocol;
 		connectionData.host = address?.host;
 		connectionData.port = address?.port;
 		connectionData.service = service || data.serviceName;
+		connectionData.sid = sid;
 	} else {
 		connectionData.host = data.host;
 		connectionData.port = data.port;
-		connectionData.service = data.databaseName;
-	}
+		connectionData.service = data.serviceName,
+		connectionData.sid = data.sid;
+		}
 
 	const { tunnel, info } = await connectViaSsh({
 		...data.sshConfig,
@@ -163,7 +202,11 @@ const getSshConnectionString = async (data, logger) => {
 
 	sshTunnel = tunnel;
 
-	return `${connectionData.protocol}${info.host}:${info.port}/${connectionData.service}`;
+	return getConnectionDescription({
+		...connectionData,
+		host: info.host,
+		port: info.port,
+	});
 };
 
 const connect = async ({
@@ -176,14 +219,13 @@ const connect = async ({
 	port,
 	userName,
 	userPassword,
-	databaseName,
 	serviceName,
 	clientPath,
 	clientType,
 	queryRequestTimeout,
 	authMethod,
 	options,
-
+	sid,
 	ssh,
 	ssh_user,
 	ssh_host,
@@ -224,12 +266,17 @@ const connect = async ({
 
 	if (['Wallet', 'TNS'].includes(connectionMethod)) {
 		if (proxy) {
-			connectString = getConnectionStringByTnsNames(configDir, serviceName, logger) + proxy;
+			connectString = getConnectionStringByTnsNames(configDir, serviceName, proxy, logger);
 		} else {
 			connectString = serviceName;
 		}
 	} else {
-		connectString = `${host}:${port}/${databaseName}`;
+		connectString = getConnectionDescription({
+			host,
+			port,
+			sid,
+			service: serviceName,
+		});
 	}
 
 	if (ssh) {
@@ -238,8 +285,8 @@ const connect = async ({
 			port,
 			configDir,
 			serviceName,
+			sid,
 			connectionMethod,
-			databaseName,
 			sshConfig: {
 				ssh_user,
 				ssh_host,
@@ -311,28 +358,25 @@ const authByCredentials = ({ connectString, username, password, queryRequestTime
 
 const pairToObj = (pairs) => _.reduce(pairs, (obj, pair) => ({ ...obj, [pair[0]]: [...(obj[pair[0]] || []), pair[1]] }), {});
 
-const selectEntities = (selectStatement, includeSystemCollection, userName) => {
+const selectEntities = (selectStatement, includeSystemCollection, schemaName) => {
+	let stmt = '';
+	if (schemaName) {
+		stmt = `T.OWNER = '${schemaName}'`;
+	}
 	if (includeSystemCollection) {
-		return execute(selectStatement);
+		return execute(`${selectStatement}${stmt ? ` WHERE ${stmt}`: ''}`);
 	} else {
-		return execute(`${selectStatement} WHERE T.OWNER = :userName`, {}, [userName]);
+		return execute(`${selectStatement} INNER JOIN ALL_USERS U ON T.OWNER = U.USERNAME WHERE U.ORACLE_MAINTAINED = 'N'${stmt ? ` AND ${stmt}`: ''}`);
 	}
 };
 
-const tableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T`, includeSystemCollection, userName);
-const externalTableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T`, includeSystemCollection, userName);
-const viewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T`, includeSystemCollection, userName);
-const materializedViewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.MVIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, userName);
-
-const getCurrentUserName = async () => {
-	const currentUser = await execute(`SELECT USER FROM DUAL`, { outFormat: oracleDB.OBJECT });
-
-	return currentUser?.[0]?.USER;
-};
+const tableNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T`, includeSystemCollection, schemaName);
+const externalTableNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T`, includeSystemCollection, schemaName);
+const viewNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T`, includeSystemCollection, schemaName);
+const materializedViewNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.MVIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, schemaName);
 
 const getEntitiesNames = async (connectionInfo,logger) => {
-	const currentUser = await getCurrentUserName();
-	const tables = await tableNamesByUser(connectionInfo, currentUser).catch(e => {
+	const tables = await tableNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve tables' });
 		logger.error(e);
 		return [];
@@ -340,7 +384,7 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 
 	logger.info({ tables });
 
-	const externalTables = await externalTableNamesByUser(connectionInfo, currentUser).catch(e => {
+	const externalTables = await externalTableNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve external tables' });
 		logger.error(e);
 
@@ -349,7 +393,7 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 
 	logger.info({ externalTables });
 
-	const views = await viewNamesByUser(connectionInfo, currentUser).catch(e => {
+	const views = await viewNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve views' });
 		logger.error(e);
 
@@ -358,7 +402,7 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 
 	logger.info({ views });
 
-	const materializedViews = await materializedViewNamesByUser(connectionInfo, currentUser).catch(e => {
+	const materializedViews = await materializedViewNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve materialized views' });
 		logger.error(e);
 
