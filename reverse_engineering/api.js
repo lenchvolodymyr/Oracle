@@ -84,24 +84,20 @@ module.exports = {
 					const result = await next;
 
 					progress({ message: `Start getting data from table`, containerName: schema, entityName: table });
-					const ddl = await oracleHelper.getDDL(table, schema, logger);
-					const jsonColumns =  await oracleHelper.getJsonColumns(table, schema);
+					const {ddl, countOfRecords, jsonColumns} = await oracleHelper.getDDL(table, schema, logger);
 					let documents = [];
 					let jsonSchema = {};
 
-					if (jsonColumns.length) {
-						const countOfRecords = await oracleHelper.getRowsCount(table);
+					if (!_.isEmpty(jsonColumns)) {
 						const quantity = getCount(countOfRecords, collectionsInfo.recordSamplingSettings)
 	
-						progress({ message: `Fetching columns for JSON schema inference: ${jsonColumns.map(c => c['COLUMN_NAME'])}`, containerName: schema, entityName: table });
+						progress({ message: `Fetching columns for JSON schema inference: ${JSON.stringify(jsonColumns)}`, containerName: schema, entityName: table });
 
 						documents = await oracleHelper.selectRecords({ tableName: table, limit: quantity, jsonColumns, schema });
 						documents = _.map(documents, obj => _.omitBy(obj, _.isNull));
 						jsonSchema = await oracleHelper.getJsonSchema(jsonColumns, documents);
 					}
 					
-					const indexes = await oracleHelper.getIndexStatements({ table, schema });
-
 					progress({ message: `Data retrieved successfully`, containerName: schema, entityName: table });
 
 					return result.concat({
@@ -111,7 +107,7 @@ module.exports = {
 						documents: documents,
 						views: [],
 						ddl: {
-							script: ddl + '\n' + indexes.join('\n'),
+							script: ddl,
 							type: 'oracle',
 							takeAllDdlProperties: true,
 						},
