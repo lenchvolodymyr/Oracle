@@ -122,7 +122,7 @@ const getConnectionStringByTnsNames = (configDir, serviceName, proxy, logger) =>
 		protocol: address?.protocol || 'tcps',
 		service: service || serviceName,
 		sid: sid,
-	}, logger, _.isUndefined));
+	}, _.isUndefined), logger);
 };
 
 const combine = (val, str) => val ? str : '';
@@ -192,7 +192,7 @@ const getSshConnectionString = async (data, logger) => {
 		connectionData.port = data.port;
 		connectionData.service = data.serviceName,
 		connectionData.sid = data.sid;
-		}
+	}
 
 	const { tunnel, info } = await connectViaSsh({
 		...data.sshConfig,
