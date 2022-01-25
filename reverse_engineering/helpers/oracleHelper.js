@@ -122,7 +122,7 @@ const getConnectionStringByTnsNames = (configDir, serviceName, proxy, logger) =>
 		protocol: address?.protocol || 'tcps',
 		service: service || serviceName,
 		sid: sid,
-	}, _.isUndefined));
+	}, logger, _.isUndefined));
 };
 
 const combine = (val, str) => val ? str : '';
@@ -135,7 +135,7 @@ const getConnectionDescription = ({
 	service,
 	httpsProxy,
 	httpsProxyPort,
-}) => {
+}, logger) => {
 	const connectionString = `(DESCRIPTION=
 		(ADDRESS=
 			(PROTOCOL=${protocol || 'tcp'})
@@ -206,7 +206,7 @@ const getSshConnectionString = async (data, logger) => {
 		...connectionData,
 		host: info.host,
 		port: info.port,
-	});
+	}, logger);
 };
 
 const connect = async ({
@@ -276,7 +276,7 @@ const connect = async ({
 			port,
 			sid,
 			service: serviceName,
-		});
+		}, logger);
 	}
 
 	if (ssh) {
@@ -477,38 +477,56 @@ const splitEntityNames = names => {
 
 const getDDL = async (tableName, schema, logger) => {
 	try {
-		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) FROM ALL_TABLES WHERE TABLE_NAME='${tableName}' AND OWNER='${schema}'`);
-		const ddl = await _.first(_.first(queryResult)).getData();
-
-		if (!/;\s*$/.test(ddl)) {
-			return `${ddl};`;
+		const queryResult = await execute(`
+			SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) || ';' || LISTAGG(STATEMENT, ';') WITHIN GROUP (ORDER BY STATEMENT) AS ddl,
+				NVL(NUM_ROWS,0) AS n_rows,
+				(SELECT LISTAGG(COLUMN_NAME, ',') || ':' || LISTAGG(DATA_TYPE, ',')
+				FROM ALL_TAB_COLUMNS 
+				WHERE TABLE_NAME='${tableName}' 
+				AND OWNER='${schema}' 
+				AND DATA_TYPE IN ('CLOB', 'BLOB', 'NVARCHAR2', 'JSON')
+				GROUP BY OWNER, TABLE_NAME) AS json_columns
+			FROM ALL_TABLES LEFT JOIN (
+				SELECT DBMS_METADATA.GET_DDL('INDEX',u.index_name, OWNER) || ';' AS STATEMENT, TABLE_NAME AS TN
+				FROM ALL_INDEXES u
+				WHERE u.TABLE_OWNER='${schema}' 
+				AND u.TABLE_NAME='${tableName}'
+				AND u.INDEX_NAME NOT IN (
+					SELECT CONSTRAINT_NAME 
+					FROM ALL_CONSTRAINTS 
+					WHERE CONSTRAINT_TYPE='P' 
+					AND OWNER='${schema}' 
+					AND TABLE_NAME='${tableName}'
+				)) 
+			ON TABLE_NAME=TN 
+			WHERE OWNER='${schema}' AND TABLE_NAME='${tableName}'
+			GROUP BY OWNER, TABLE_NAME, NUM_ROWS
+		`);
+		const row = _.first(queryResult);
+		const ddl = await _.first(row).getData();
+		const countOfRecords = row[1] || 0;
+		const namesAndTypes = row[2] ? row[2].split(':') : [];
+		let jsonColumns = {};
+		if (!_.isEmpty(namesAndTypes)) {
+			jsonColumns = _.zipObject(namesAndTypes[0].split(','), namesAndTypes[1].split(','));
 		}
-
-		return ddl;
+		const queryObj = {
+			ddl,
+			jsonColumns,
+			countOfRecords,
+			};
+		logger.log('info', queryObj, `Getting DDL from "${schema}"."${tableName}"`);
+		return queryObj;
 	} catch (err) {
 		logger.log('error', {
 			message: 'Cannot get DDL for table: ' + tableName,
 			error: { message: err.message, stack: err.stack, err: _.omit(err, ['message', 'stack']) }
-		}, 'Getting DDL');
-		return '';
-	}
-};
-
-const getJsonColumns = async (tableName, schema) => {
-	const result = await execute(`SELECT * FROM all_tab_columns WHERE TABLE_NAME='${tableName}' AND OWNER='${schema}' AND DATA_TYPE IN ('CLOB', 'BLOB', 'NVARCHAR2', 'JSON')`, {
-		outFormat: oracleDB.OBJECT,
-	});
-
-	return result;
-};
-
-const getRowsCount = async tableName => {
-	try {
-		const queryResult = await execute(`SELECT count(*) AS COUNT FROM ${tableName}`);
-
-		return Number(_.first(queryResult.flat()) || 0);
-	} catch (error) {
-		return 0;
+		}, `Getting DDL from "${schema}"."${tableName}"`);
+		return {
+			ddl: '',
+			jsonColumns: {},
+			countOfRecords: 0,
+		};
 	}
 };
 
@@ -549,24 +567,21 @@ const escapeName = (name) => {
 	return name;
 };
 
-const replaceNames = (columns, records) => {
+const replaceNames = (names, records) => {
 	return records.map((record) => {
-		return columns.reduce((result, column) => {
-			const name = column['COLUMN_NAME'];
+		return names.reduce((result, name) => {
 			result[name] = record[name];
-
 			return result;
 		}, {});
 	});
 };
 
 const selectRecords = async ({ tableName, limit, jsonColumns, schema }) => {
-	const records = await execute(`SELECT ${jsonColumns.map((c) => escapeName(c['COLUMN_NAME'])).join(', ')} FROM ${escapeName(schema)}.${escapeName(tableName)} FETCH NEXT ${limit} ROWS ONLY`, {
+	const names = Object.keys(jsonColumns);
+	const records = await execute(`SELECT ${names.map((c) => escapeName(c)).join(', ')} FROM ${escapeName(schema)}.${escapeName(tableName)} FETCH NEXT ${limit} ROWS ONLY`, {
 		outFormat: oracleDB.OBJECT,
 	});
-
-	const result = await readRecordsValues(replaceNames(jsonColumns, records));
-
+	const result = await readRecordsValues(replaceNames(names, records));
 	return result;
 };
 
@@ -601,9 +616,9 @@ const getJsonSchema = async (jsonColumns, records) => {
 		NVARCHAR2: { type: 'char', mode: 'nvarchar2' },
 		JSON: { type: 'json' }
 	};
-	const properties = jsonColumns.reduce((properties, column) => {
-		const columnName = column['COLUMN_NAME'];
-		const columnType = column['DATA_TYPE'];
+	const properties = Object.keys(jsonColumns).reduce((properties, key) => {
+		const columnName = key;
+		const columnType = jsonColumns?.key;
 		const schema = types[columnType];
 
 		if (!schema) {
@@ -626,22 +641,6 @@ const getJsonSchema = async (jsonColumns, records) => {
 	}, {});
 
 	return { properties };
-};
-
-const getIndexStatements = async ({ table, schema }) => {
-	let primaryKeyConstraints = await execute(`SELECT CONSTRAINT_NAME FROM ALL_CONSTRAINTS WHERE CONSTRAINT_TYPE='P' AND OWNER='${schema}' AND TABLE_NAME='${table}'`);
-
-	primaryKeyConstraints = primaryKeyConstraints.flat();
-
-	let indexQuery = `SELECT DBMS_METADATA.GET_DDL('INDEX',u.index_name, OWNER) AS STATEMENT FROM ALL_INDEXES u WHERE u.TABLE_OWNER='${schema}' AND u.TABLE_NAME='${table}'`;
-
-	if (primaryKeyConstraints.length) {
-		indexQuery += ` AND u.INDEX_NAME NOT IN ('${primaryKeyConstraints.join('\', \'')}')`;
-	}
-	const indexRecords = await execute(indexQuery, { outFormat: oracleDB.OBJECT });
-	const indexStatements = await readRecordsValues(indexRecords)
-
-	return indexStatements.map(s => `${s['STATEMENT']};`);
 };
 
 const getViewDDL = async (viewName, logger) => {
@@ -674,12 +673,9 @@ module.exports = {
 	getEntitiesNames,
 	splitEntityNames,
 	getDDL,
-	getRowsCount,
 	getJsonSchema,
-	getIndexStatements,
 	getViewDDL,
 	getDbVersion,
-	getJsonColumns,
 	selectRecords,
 	logEnvironment,
 	execute,
