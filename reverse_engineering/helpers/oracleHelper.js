@@ -55,10 +55,13 @@ const parseProxyOptions = (proxyString = '') => {
 	const result = proxyString.match(/http:\/\/(?:.*?:.*?@)?(.*?):(\d+)/i);
 
 	if (!result) {
-		return '';
+		return {};
 	}
 
-	return `?https_proxy=${result[1]}&https_proxy_port=${result[2]}`;
+	return {
+		httpsProxy: result[1],
+		httpsProxyPort: result[2],
+	};
 };
 
 const getTnsNamesOraFile = (configDir) => {
@@ -85,11 +88,10 @@ const getTnsNamesOraFile = (configDir) => {
 const parseTnsNamesOra = (filePath) => {
 	const content = fs.readFileSync(filePath).toString();
 	const result = parseTns(content);
-
 	return result;
 };
 
-const getConnectionStringByTnsNames = (configDir, serviceName, logger) => {
+const getConnectionStringByTnsNames = (configDir, serviceName, proxy, logger) => {
 	const filePath = getTnsNamesOraFile(configDir);
 
 	if (!fs.existsSync(filePath)) {
@@ -110,10 +112,44 @@ const getConnectionStringByTnsNames = (configDir, serviceName, logger) => {
 
 	const address = tnsData[serviceName]?.data?.description?.address;
 	const service = tnsData[serviceName]?.data?.description?.connect_data?.service_name;
+	const sid = tnsData[data.serviceName]?.data?.description?.connect_data?.sid;
 
 	logger({ message: 'tnsnames.ora', address, service });
 
-	return `${address?.protocol || 'tcps'}://${address?.host}:${address?.port}/${service || serviceName}`;
+	return getConnectionDescription(_.omitBy({
+		...address,
+		...proxy,
+		protocol: address?.protocol || 'tcps',
+		service: service || serviceName,
+		sid: sid,
+	}, _.isUndefined), logger);
+};
+
+const combine = (val, str) => val ? str : '';
+
+const getConnectionDescription = ({
+	protocol,
+	host,
+	port,
+	sid,
+	service,
+	httpsProxy,
+	httpsProxyPort,
+}, logger) => {
+	const connectionString = `(DESCRIPTION=
+		(ADDRESS=
+			(PROTOCOL=${protocol || 'tcp'})
+			(HOST=${host})
+			(PORT=${port}))
+			${combine(httpsProxy, `(HTTPS_PROXY=${httpsProxy})`)}
+			${combine(httpsProxyPort, `(HTTPS_PROXY_PORT=${httpsProxyPort})`)}
+		(CONNECT_DATA=
+					${combine(sid, `(SID=${sid})`)}
+					${combine(service, `(SERVICE_NAME=${service})`)}
+		)
+	)`
+	logger({ message: 'connectionString', connectionString });
+	return connectionString;
 };
 
 const getSshConnectionString = async (data, logger) => {
@@ -141,18 +177,21 @@ const getSshConnectionString = async (data, logger) => {
 
 		const address = tnsData[data.serviceName]?.data?.description?.address;
 		const service = tnsData[data.serviceName]?.data?.description?.connect_data?.service_name;
+		const sid = tnsData[data.serviceName]?.data?.description?.connect_data?.sid;
 
 		logger({ message: 'tnsnames.ora', address, service });
 
 
-		connectionData.protocol = address?.protocol + '://';
+		connectionData.protocol = address?.protocol;
 		connectionData.host = address?.host;
 		connectionData.port = address?.port;
 		connectionData.service = service || data.serviceName;
+		connectionData.sid = sid;
 	} else {
 		connectionData.host = data.host;
 		connectionData.port = data.port;
-		connectionData.service = data.databaseName;
+		connectionData.service = data.serviceName,
+		connectionData.sid = data.sid;
 	}
 
 	const { tunnel, info } = await connectViaSsh({
@@ -163,7 +202,11 @@ const getSshConnectionString = async (data, logger) => {
 
 	sshTunnel = tunnel;
 
-	return `${connectionData.protocol}${info.host}:${info.port}/${connectionData.service}`;
+	return getConnectionDescription({
+		...connectionData,
+		host: info.host,
+		port: info.port,
+	}, logger);
 };
 
 const connect = async ({
@@ -176,14 +219,13 @@ const connect = async ({
 	port,
 	userName,
 	userPassword,
-	databaseName,
 	serviceName,
 	clientPath,
 	clientType,
 	queryRequestTimeout,
 	authMethod,
 	options,
-
+	sid,
 	ssh,
 	ssh_user,
 	ssh_host,
@@ -224,12 +266,17 @@ const connect = async ({
 
 	if (['Wallet', 'TNS'].includes(connectionMethod)) {
 		if (proxy) {
-			connectString = getConnectionStringByTnsNames(configDir, serviceName, logger) + proxy;
+			connectString = getConnectionStringByTnsNames(configDir, serviceName, proxy, logger);
 		} else {
 			connectString = serviceName;
 		}
 	} else {
-		connectString = `${host}:${port}/${databaseName}`;
+		connectString = getConnectionDescription({
+			host,
+			port,
+			sid,
+			service: serviceName,
+		}, logger);
 	}
 
 	if (ssh) {
@@ -238,8 +285,8 @@ const connect = async ({
 			port,
 			configDir,
 			serviceName,
+			sid,
 			connectionMethod,
-			databaseName,
 			sshConfig: {
 				ssh_user,
 				ssh_host,
@@ -311,28 +358,25 @@ const authByCredentials = ({ connectString, username, password, queryRequestTime
 
 const pairToObj = (pairs) => _.reduce(pairs, (obj, pair) => ({ ...obj, [pair[0]]: [...(obj[pair[0]] || []), pair[1]] }), {});
 
-const selectEntities = (selectStatement, includeSystemCollection, userName) => {
+const selectEntities = (selectStatement, includeSystemCollection, schemaName) => {
+	let stmt = '';
+	if (schemaName) {
+		stmt = `T.OWNER = '${schemaName}'`;
+	}
 	if (includeSystemCollection) {
-		return execute(selectStatement);
+		return execute(`${selectStatement}${stmt ? ` WHERE ${stmt}`: ''}`);
 	} else {
-		return execute(`${selectStatement} WHERE T.OWNER = :userName`, {}, [userName]);
+		return execute(`${selectStatement} INNER JOIN ALL_USERS U ON T.OWNER = U.USERNAME WHERE U.ORACLE_MAINTAINED = 'N'${stmt ? ` AND ${stmt}`: ''}`);
 	}
 };
 
-const tableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T`, includeSystemCollection, userName);
-const externalTableNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T`, includeSystemCollection, userName);
-const viewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T`, includeSystemCollection, userName);
-const materializedViewNamesByUser = ({includeSystemCollection }, userName) => selectEntities(`SELECT T.OWNER, T.MVIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, userName);
-
-const getCurrentUserName = async () => {
-	const currentUser = await execute(`SELECT USER FROM DUAL`, { outFormat: oracleDB.OBJECT });
-
-	return currentUser?.[0]?.USER;
-};
+const tableNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_TABLES T`, includeSystemCollection, schemaName);
+const externalTableNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.TABLE_NAME FROM ALL_EXTERNAL_TABLES T`, includeSystemCollection, schemaName);
+const viewNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.VIEW_NAME || \' (v)\' FROM ALL_VIEWS T`, includeSystemCollection, schemaName);
+const materializedViewNamesByUser = ({includeSystemCollection, schemaName }) => selectEntities(`SELECT T.OWNER, T.MVIEW_NAME || \' (v)\' FROM ALL_MVIEWS T`, includeSystemCollection, schemaName);
 
 const getEntitiesNames = async (connectionInfo,logger) => {
-	const currentUser = await getCurrentUserName();
-	const tables = await tableNamesByUser(connectionInfo, currentUser).catch(e => {
+	const tables = await tableNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve tables' });
 		logger.error(e);
 		return [];
@@ -340,7 +384,7 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 
 	logger.info({ tables });
 
-	const externalTables = await externalTableNamesByUser(connectionInfo, currentUser).catch(e => {
+	const externalTables = await externalTableNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve external tables' });
 		logger.error(e);
 
@@ -349,7 +393,7 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 
 	logger.info({ externalTables });
 
-	const views = await viewNamesByUser(connectionInfo, currentUser).catch(e => {
+	const views = await viewNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve views' });
 		logger.error(e);
 
@@ -358,7 +402,7 @@ const getEntitiesNames = async (connectionInfo,logger) => {
 
 	logger.info({ views });
 
-	const materializedViews = await materializedViewNamesByUser(connectionInfo, currentUser).catch(e => {
+	const materializedViews = await materializedViewNamesByUser(connectionInfo).catch(e => {
 		logger.info({ message: 'Cannot retrieve materialized views' });
 		logger.error(e);
 
@@ -433,38 +477,56 @@ const splitEntityNames = names => {
 
 const getDDL = async (tableName, schema, logger) => {
 	try {
-		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) FROM ALL_TABLES WHERE TABLE_NAME='${tableName}' AND OWNER='${schema}'`);
-		const ddl = await _.first(_.first(queryResult)).getData();
-
-		if (!/;\s*$/.test(ddl)) {
-			return `${ddl};`;
+		const queryResult = await execute(`
+			SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) || ';' || LISTAGG(STATEMENT, ';') WITHIN GROUP (ORDER BY STATEMENT) AS ddl,
+				NVL(NUM_ROWS,0) AS n_rows,
+				(SELECT LISTAGG(COLUMN_NAME, ',') || ':' || LISTAGG(DATA_TYPE, ',')
+				FROM ALL_TAB_COLUMNS 
+				WHERE TABLE_NAME='${tableName}' 
+				AND OWNER='${schema}' 
+				AND DATA_TYPE IN ('CLOB', 'BLOB', 'NVARCHAR2', 'JSON')
+				GROUP BY OWNER, TABLE_NAME) AS json_columns
+			FROM ALL_TABLES LEFT JOIN (
+				SELECT DBMS_METADATA.GET_DDL('INDEX',u.index_name, OWNER) || ';' AS STATEMENT, TABLE_NAME AS TN
+				FROM ALL_INDEXES u
+				WHERE u.TABLE_OWNER='${schema}' 
+				AND u.TABLE_NAME='${tableName}'
+				AND u.INDEX_NAME NOT IN (
+					SELECT CONSTRAINT_NAME 
+					FROM ALL_CONSTRAINTS 
+					WHERE CONSTRAINT_TYPE='P' 
+					AND OWNER='${schema}' 
+					AND TABLE_NAME='${tableName}'
+				)) 
+			ON TABLE_NAME=TN 
+			WHERE OWNER='${schema}' AND TABLE_NAME='${tableName}'
+			GROUP BY OWNER, TABLE_NAME, NUM_ROWS
+		`);
+		const row = _.first(queryResult);
+		const ddl = await _.first(row).getData();
+		const countOfRecords = row[1] || 0;
+		const namesAndTypes = row[2] ? row[2].split(':') : [];
+		let jsonColumns = {};
+		if (!_.isEmpty(namesAndTypes)) {
+			jsonColumns = _.zipObject(namesAndTypes[0].split(','), namesAndTypes[1].split(','));
 		}
-
-		return ddl;
+		const queryObj = {
+			ddl,
+			jsonColumns,
+			countOfRecords,
+			};
+		logger.log('info', queryObj, `Getting DDL from "${schema}"."${tableName}"`);
+		return queryObj;
 	} catch (err) {
 		logger.log('error', {
 			message: 'Cannot get DDL for table: ' + tableName,
 			error: { message: err.message, stack: err.stack, err: _.omit(err, ['message', 'stack']) }
-		}, 'Getting DDL');
-		return '';
-	}
-};
-
-const getJsonColumns = async (tableName, schema) => {
-	const result = await execute(`SELECT * FROM all_tab_columns WHERE TABLE_NAME='${tableName}' AND OWNER='${schema}' AND DATA_TYPE IN ('CLOB', 'BLOB', 'NVARCHAR2', 'JSON')`, {
-		outFormat: oracleDB.OBJECT,
-	});
-
-	return result;
-};
-
-const getRowsCount = async tableName => {
-	try {
-		const queryResult = await execute(`SELECT count(*) AS COUNT FROM ${tableName}`);
-
-		return Number(_.first(queryResult.flat()) || 0);
-	} catch (error) {
-		return 0;
+		}, `Getting DDL from "${schema}"."${tableName}"`);
+		return {
+			ddl: '',
+			jsonColumns: {},
+			countOfRecords: 0,
+		};
 	}
 };
 
@@ -505,24 +567,21 @@ const escapeName = (name) => {
 	return name;
 };
 
-const replaceNames = (columns, records) => {
+const replaceNames = (names, records) => {
 	return records.map((record) => {
-		return columns.reduce((result, column) => {
-			const name = column['COLUMN_NAME'];
+		return names.reduce((result, name) => {
 			result[name] = record[name];
-
 			return result;
 		}, {});
 	});
 };
 
 const selectRecords = async ({ tableName, limit, jsonColumns, schema }) => {
-	const records = await execute(`SELECT ${jsonColumns.map((c) => escapeName(c['COLUMN_NAME'])).join(', ')} FROM ${escapeName(schema)}.${escapeName(tableName)} FETCH NEXT ${limit} ROWS ONLY`, {
+	const names = Object.keys(jsonColumns);
+	const records = await execute(`SELECT ${names.map((c) => escapeName(c)).join(', ')} FROM ${escapeName(schema)}.${escapeName(tableName)} FETCH NEXT ${limit} ROWS ONLY`, {
 		outFormat: oracleDB.OBJECT,
 	});
-
-	const result = await readRecordsValues(replaceNames(jsonColumns, records));
-
+	const result = await readRecordsValues(replaceNames(names, records));
 	return result;
 };
 
@@ -557,9 +616,9 @@ const getJsonSchema = async (jsonColumns, records) => {
 		NVARCHAR2: { type: 'char', mode: 'nvarchar2' },
 		JSON: { type: 'json' }
 	};
-	const properties = jsonColumns.reduce((properties, column) => {
-		const columnName = column['COLUMN_NAME'];
-		const columnType = column['DATA_TYPE'];
+	const properties = Object.keys(jsonColumns).reduce((properties, key) => {
+		const columnName = key;
+		const columnType = jsonColumns?.key;
 		const schema = types[columnType];
 
 		if (!schema) {
@@ -582,22 +641,6 @@ const getJsonSchema = async (jsonColumns, records) => {
 	}, {});
 
 	return { properties };
-};
-
-const getIndexStatements = async ({ table, schema }) => {
-	let primaryKeyConstraints = await execute(`SELECT CONSTRAINT_NAME FROM ALL_CONSTRAINTS WHERE CONSTRAINT_TYPE='P' AND OWNER='${schema}' AND TABLE_NAME='${table}'`);
-
-	primaryKeyConstraints = primaryKeyConstraints.flat();
-
-	let indexQuery = `SELECT DBMS_METADATA.GET_DDL('INDEX',u.index_name, OWNER) AS STATEMENT FROM ALL_INDEXES u WHERE u.TABLE_OWNER='${schema}' AND u.TABLE_NAME='${table}'`;
-
-	if (primaryKeyConstraints.length) {
-		indexQuery += ` AND u.INDEX_NAME NOT IN ('${primaryKeyConstraints.join('\', \'')}')`;
-	}
-	const indexRecords = await execute(indexQuery, { outFormat: oracleDB.OBJECT });
-	const indexStatements = await readRecordsValues(indexRecords)
-
-	return indexStatements.map(s => `${s['STATEMENT']};`);
 };
 
 const getViewDDL = async (viewName, logger) => {
@@ -630,12 +673,9 @@ module.exports = {
 	getEntitiesNames,
 	splitEntityNames,
 	getDDL,
-	getRowsCount,
 	getJsonSchema,
-	getIndexStatements,
 	getViewDDL,
 	getDbVersion,
-	getJsonColumns,
 	selectRecords,
 	logEnvironment,
 	execute,

@@ -10,13 +10,7 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 		logger.log('info', message, 'Connection');
 	});
 
-	const queries = connectionInfo.script.split('\n\n').filter(Boolean).map((query) => _.trim(_.trim(query), ';')).filter((statement) => {
-		if (/^CREATE\s+USER/i.test(statement)) {
-			return false;
-		}
-
-		return true;
-	});
+	const queries = connectionInfo.script.split('\n\n').filter(Boolean).map((query) => _.trim(_.trim(query), ';'));
 	let i = 0;
 	let error;
 
@@ -28,7 +22,8 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 			await oracleHelper.execute(query);
 		} catch (err) {
 			const tableExistsError = err.errorNum === 955;
-			if (tableExistsError) {
+			const userExistsError = err.errorNum === 1920;
+			if (tableExistsError || userExistsError) {
 				return;
 			}
 			error = err;

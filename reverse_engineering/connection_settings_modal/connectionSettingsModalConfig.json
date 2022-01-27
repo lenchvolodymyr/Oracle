@@ -89,15 +89,54 @@
 				}
 			},
 			{
+				"inputLabel": "Identifier type",
+				"inputKeyword": "identifierType",
+				"inputType": "select",
+				"defaultValue": "serviceName",
+				"options": [
+					{ "value": "serviceName", "label": "Service Name" },
+					{ "value": "SID", "label": "SID" }
+				],
+				"dependency": {
+					"key": "connectionMethod",
+					"value": ["Basic"]
+				}
+			},
+			{
 				"inputLabel": "Service Name",
 				"inputKeyword": "serviceName",
 				"description": "Specify the service name of the Oracle Instance",
 				"inputType": "text",
 				"dependency": {
-					"key": "connectionMethod",
-					"value": [
-						"Wallet",
-						"TNS"
+					"type": "or",
+					"values": [
+						{
+							"key": "identifierType",
+							"value": "serviceName"
+						},
+						{
+							"key": "connectionMethod",
+							"value": ["Wallet", "TNS"]
+						}
+					]
+				}
+			},
+			{
+				"inputLabel": "SID",
+				"inputKeyword": "sid",
+				"description": "Optionally specify the SID of the Oracle Instance",
+				"inputType": "text",
+				"dependency": {
+					"type": "and",
+					"values": [
+						{
+							"key": "identifierType",
+							"value": "SID"
+						},
+						{
+							"key": "connectionMethod",
+							"value": ["Basic"]
+						}
 					]
 				}
 			}
@@ -112,9 +151,7 @@
 				"inputType": "select",
 				"defaultValue": "Username / Password",
 				"options": [
-					{ "value": "Username / Password", "label": "Username / Password" },
-					{ "value": "OS", "label": "OS" },
-					{ "value": "Kerberos", "label": "Kerberos" }
+					{ "value": "Username / Password", "label": "Username / Password" }
 				]
 			},
 			{
@@ -275,11 +312,11 @@
 		"tab": "Advanced",
 		"structure": [
 			{
-				"inputLabel": "Database name",
-				"inputKeyword": "databaseName",
+				"inputLabel": "Schema name",
+				"inputKeyword": "schemaName",
 				"inputType": "text",
-				"inputPlaceholder": "Database name",
-				"description": "Optionally specify a database name to limit the scope of discovery",
+				"inputPlaceholder": "Schema name",
+				"description": "Optionally specify a schema name to limit the scope of discovery",
 				"regex": "([^\\s])"
 			}
 		]
