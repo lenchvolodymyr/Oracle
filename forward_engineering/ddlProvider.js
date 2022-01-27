@@ -76,6 +76,10 @@ module.exports = (baseProvider, options, app) => {
         _,
         wrapInQuotes,
     });
+
+    const wrapIfNotExists = (statement, ifNotExist, errorCode = 955) => {
+        return ifNotExist ? assignTemplates(templates.ifNotExists, { statement: _.trim(tab(tab(statement))), errorCode }) : statement + ';';
+    };
     
     return {
         getDefaultType(type) {
@@ -94,14 +98,15 @@ module.exports = (baseProvider, options, app) => {
             const dbVersion = _.get(data, 'modelData.0.dbVersion');
             return {
                 schemaName: containerData.name,
+                ifNotExist: containerData.ifNotExist,
                 dbVersion,
             };
         },
 
-        createSchema({ schemaName }) {
-            const schemaStatement = assignTemplates(templates.createSchema, {
+        createSchema({ schemaName, ifNotExist }) {
+            const schemaStatement = wrapIfNotExists(assignTemplates(templates.createSchema, {
                 schemaName: wrapInQuotes(schemaName),
-            });
+            }), ifNotExist, 1920);
             return schemaStatement;
         },
 
@@ -271,6 +276,7 @@ module.exports = (baseProvider, options, app) => {
                     'temporary',
                     'temporaryType',
                     'description',
+                    'ifNotExist'
                 )
             };
         },
@@ -296,15 +302,16 @@ module.exports = (baseProvider, options, app) => {
                 temporary,
                 temporaryType,
                 description,
+                ifNotExist,
             },
             isActivated
         ) {
             const tableName = getNamePrefixedWithSchemaName(name, schemaData.schemaName);
-            const comment = assignTemplates(templates.comment, {
+            const comment = description ? assignTemplates(templates.comment, {
                 object: 'TABLE',
                 objectName: tableName,
                 comment: wrapComment(description),
-            });
+            }) : '';
 
             const dividedKeysConstraints = divideIntoActivatedAndDeactivated(
                 keyConstraints.map(createKeyConstraint(templates, isActivated)),
@@ -324,29 +331,33 @@ module.exports = (baseProvider, options, app) => {
                 checkConstraints: !_.isEmpty(checkConstraints) ? ',\n\t' + _.join(checkConstraints, ',\n\t') : '',
             });
 
-            const tableStatement = commentIfDeactivated(assignTemplates(templates.createTable, {
-                name: tableName,
-                tableProps: tableProps ? `\n(\n\t${tableProps}\n)` : '',
-                tableType: getTableType({
-                    duplicated,
-                    external,
-                    immutable,
-                    sharded,
-                    temporary,
-                    temporaryType,
-                    blockchain_table_clauses,
-                }),
-                options: getTableOptions({
-                    blockchain_table_clauses,
-                    external_table_clause,
-                    storage,
-                    partitioning,
-                    selectStatement,
-                }),
-                comment: description ? comment : '',
-                columnDescriptions,
-            }), {
-                isActivated
+            const commentStatements = (comment || columnDescriptions) ? '\n' + comment + columnDescriptions : '';
+
+            const tableStatement = commentIfDeactivated(
+                wrapIfNotExists(
+                    assignTemplates(templates.createTable, {
+                        name: tableName,
+                        tableProps: tableProps ? `\n(\n\t${tableProps}\n)` : '',
+                        tableType: getTableType({
+                            duplicated,
+                            external,
+                            immutable,
+                            sharded,
+                            temporary,
+                            temporaryType,
+                            blockchain_table_clauses,
+                        }),
+                        options: getTableOptions({
+                            blockchain_table_clauses,
+                            external_table_clause,
+                            storage,
+                            partitioning,
+                            selectStatement,
+                        })
+                    }),
+                    ifNotExist,
+                ) + commentStatements + '\n', {
+                isActivated,
             });
 
             return tableStatement;
@@ -398,6 +409,7 @@ module.exports = (baseProvider, options, app) => {
                 selectStatement: detailsTab.selectStatement,
                 schemaName: viewData.schemaData.schemaName,
                 description: detailsTab.description,
+                ifNotExist: detailsTab.ifNotExist,
             };
         },
 
@@ -407,11 +419,11 @@ module.exports = (baseProvider, options, app) => {
             const { columns, tables } = getViewData(viewData.keys);
             const columnsAsString = columns.map(column => column.statement).join(',\n\t\t');
 
-            const comment = assignTemplates(templates.comment, {
+            const comment = viewData.description ? '\n' + assignTemplates(templates.comment, {
                 object: 'TABLE',
                 objectName: viewName,
                 comment: wrapComment(viewData.description),
-            });
+            }) + '\n' : '';
 
             const selectStatement = _.trim(viewData.selectStatement)
                 ? _.trim(tab(viewData.selectStatement))
@@ -421,14 +433,15 @@ module.exports = (baseProvider, options, app) => {
                   });
 
             return commentIfDeactivated(
-                assignTemplates(templates.createView, {
-                    name: viewName,
-                    orReplace: viewData.orReplace ? ' OR REPLACE' : '',
-                    force: viewData.force ? ' FORCE' : '',
-                    viewType: getViewType(viewData),
-                    comment: viewData.description ? comment : '',
-                    selectStatement,
-                }),
+                wrapIfNotExists(
+                    assignTemplates(templates.createView, {
+                        name: viewName,
+                        orReplace: viewData.orReplace ? ' OR REPLACE' : '',
+                        force: viewData.force ? ' FORCE' : '',
+                        viewType: getViewType(viewData),
+                        selectStatement,
+                    }), viewData.ifNotExist
+                ) + comment,
                 { isActivated }
             );
         },

@@ -1,12 +1,12 @@
 module.exports = {
-    createSchema: 'CREATE USER ${schemaName} NO AUTHENTICATION;\n',
+    createSchema: 'CREATE USER ${schemaName} NO AUTHENTICATION',
 
     comment: '\nCOMMENT ON ${object} ${objectName} IS ${comment};\n',
 
     createTable:
         'CREATE${tableType} TABLE ${name}\
         ${tableProps}\
-        \n${options};\n${comment}${columnDescriptions}\n',
+        \n${options}',
 
     createTableProps: '${columnDefinitions}${keyConstraints}${checkConstraints}${foreignKeyConstraints}',
 
@@ -23,7 +23,7 @@ module.exports = {
 
     createIndex: 'CREATE${indexType} INDEX ${name} ON ${tableName}${keys}${options};\n',
 
-    createView: 'CREATE${orReplace}${force}${viewType} VIEW ${name} \n\tAS ${selectStatement};\n${comment}\n',
+    createView: 'CREATE${orReplace}${force}${viewType} VIEW ${name} \n\tAS ${selectStatement}',
 
     viewSelectStatement: 'SELECT ${keys}\n\tFROM ${tableName}',
 
@@ -32,4 +32,6 @@ module.exports = {
     objectTypeColumnDefinition: '${name} ${type}',
 
     createCollectionType: 'CREATE OR REPLACE TYPE ${name} IS ${collectionType}${size} OF (${datatype})${notPersistable};\n',
+
+    ifNotExists: 'DECLARE\nBEGIN\n\tEXECUTE IMMEDIATE \'${statement}\';\n\tEXCEPTION WHEN OTHERS THEN\n\t\tIF SQLCODE = -${errorCode} THEN NULL; ELSE RAISE; END IF;\nEND;\n/\n',
 };
