@@ -26,6 +26,11 @@
 				"propertyType": "checkbox"
 			},
 			{
+				"propertyName": "If not exist",
+				"propertyKeyword": "ifNotExist",
+				"propertyType": "checkbox"
+			},
+			{
 				"propertyName": "Force",
 				"propertyKeyword": "force",
 				"propertyTooltip": "To create the view regardless of whether the base tables of the view or the referenced object types exist or the owner of the schema containing the view has privileges on them.",

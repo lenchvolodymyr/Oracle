@@ -1,6 +1,6 @@
 module.exports = ({ _, divideIntoActivatedAndDeactivated, commentIfDeactivated }) => {
     const wrapInQuotes = name => `"${name}"`;
-    const wrapComment = comment => `"${comment}"`;
+    const wrapComment = comment => `'${comment}'`;
 
     const getNamePrefixedWithSchemaName = (name, schemaName) => {
         if (schemaName) {

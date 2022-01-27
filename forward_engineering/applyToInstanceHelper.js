@@ -10,12 +10,16 @@ const applyToInstance = async (connectionInfo, logger, app) => {
 		logger.log('info', message, 'Connection');
 	});
 
-	const queries = connectionInfo.script.split('\n\n').filter(Boolean).map((query) => _.trim(_.trim(query), ';'));
+	const queries = connectionInfo.script.split('\n\n').filter(Boolean).map((query) => _.trim(_.trim(_.trim(query), '/'), ';'));
 	let i = 0;
 	let error;
 
 	await async.mapSeries(queries, async query => {
 		try {
+			if (query.endsWith('END')) {
+				query += ';';
+			}
+
 			const message = 'Query: ' + query.split('\n').shift().substr(0, 150);
 			logger.progress({ message });
 			logger.log('info', { message }, 'Apply to instance');
