@@ -478,7 +478,22 @@ const splitEntityNames = names => {
 const getDDL = async (tableName, schema, logger) => {
 	try {
 		const queryResult = await execute(`
-			SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) || ';' || LISTAGG(STATEMENT, ';') WITHIN GROUP (ORDER BY STATEMENT) AS ddl,
+			SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) 
+				|| ';' 
+				|| LISTAGG(STATEMENT, '\r\n') WITHIN GROUP (ORDER BY STATEMENT)
+				|| '\r\n' 
+				|| (
+					SELECT LISTAGG(TC.DDL_COMMENTS, '\r\n') || '\r\n' || LISTAGG(CC.DDL_COMMENTS, '\r\n')
+					FROM (
+						SELECT 'COMMENT ON TABLE ' || OWNER || '.' || TABLE_NAME || ' IS '|| '''' || REPLACE(COMMENTS,'''','''''') || ''';' AS DDL_COMMENTS, TABLE_NAME 
+						FROM ALL_TAB_COMMENTS WHERE TABLE_NAME = '${tableName}' AND OWNER = '${schema}'
+					) TC FULL OUTER JOIN (
+						SELECT 'COMMENT ON COLUMN ' || OWNER || '.' || TABLE_NAME || '.' || COLUMN_NAME || ' IS '|| '''' || REPLACE(COMMENTS,'''','''''') || ''';' AS DDL_COMMENTS, TABLE_NAME
+						FROM ALL_COL_COMMENTS WHERE TABLE_NAME = '${tableName}' AND OWNER = '${schema}'
+					) CC ON TC.TABLE_NAME = CC.TABLE_NAME
+					WHERE TC.TABLE_NAME = '${tableName}'
+					GROUP BY TC.TABLE_NAME
+				) AS ddl,
 				NVL(NUM_ROWS,0) AS n_rows,
 				(SELECT LISTAGG(COLUMN_NAME, ',') || ':' || LISTAGG(DATA_TYPE, ',')
 				FROM ALL_TAB_COLUMNS 
