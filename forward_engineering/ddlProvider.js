@@ -423,7 +423,7 @@ module.exports = (baseProvider, options, app) => {
                 object: 'TABLE',
                 objectName: viewName,
                 comment: wrapComment(viewData.description),
-            }) + '\n' : '';
+            }) + '\n' : '\n';
 
             const selectStatement = _.trim(viewData.selectStatement)
                 ? _.trim(tab(viewData.selectStatement))
