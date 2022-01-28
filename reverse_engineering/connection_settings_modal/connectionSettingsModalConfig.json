@@ -89,20 +89,54 @@
 				}
 			},
 			{
+				"inputLabel": "Identifier type",
+				"inputKeyword": "identifierType",
+				"inputType": "select",
+				"defaultValue": "serviceName",
+				"options": [
+					{ "value": "serviceName", "label": "Service Name" },
+					{ "value": "SID", "label": "SID" }
+				],
+				"dependency": {
+					"key": "connectionMethod",
+					"value": ["Basic"]
+				}
+			},
+			{
 				"inputLabel": "Service Name",
 				"inputKeyword": "serviceName",
 				"description": "Specify the service name of the Oracle Instance",
-				"inputType": "text"
+				"inputType": "text",
+				"dependency": {
+					"type": "or",
+					"values": [
+						{
+							"key": "identifierType",
+							"value": "serviceName"
+						},
+						{
+							"key": "connectionMethod",
+							"value": ["Wallet", "TNS"]
+						}
+					]
+				}
 			},
 			{
 				"inputLabel": "SID",
 				"inputKeyword": "sid",
-				"description": "Optionally specify the sid of the Oracle Instance",
+				"description": "Optionally specify the SID of the Oracle Instance",
 				"inputType": "text",
 				"dependency": {
-					"key": "connectionMethod",
-					"value": [
-						"Basic"
+					"type": "and",
+					"values": [
+						{
+							"key": "identifierType",
+							"value": "SID"
+						},
+						{
+							"key": "connectionMethod",
+							"value": ["Basic"]
+						}
 					]
 				}
 			}

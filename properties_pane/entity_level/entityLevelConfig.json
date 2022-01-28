@@ -127,6 +127,11 @@ making sure that you maintain a proper JSON format.
 				"template": "textarea"
 			},
 			{
+				"propertyName": "If not exist",
+				"propertyKeyword": "ifNotExist",
+				"propertyType": "checkbox"
+			},
+			{
 				"propertyName": "Temporary",
 				"propertyKeyword": "temporary",
 				"propertyTooltip": "The data in a temporary table is visible only to the session that inserts the data into the table.  Temporary tables are subject to restrictions.",
