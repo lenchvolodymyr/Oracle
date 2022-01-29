@@ -119,7 +119,7 @@ making sure that you maintain a proper JSON format.
 		"lowerTab": "Details",
 		"structure": [
 			{
-				"propertyName": "If not exist",
+				"propertyName": "If not exists",
 				"propertyKeyword": "ifNotExist",
 				"propertyType": "checkbox"
 			},

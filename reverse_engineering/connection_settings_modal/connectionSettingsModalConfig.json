@@ -206,6 +206,7 @@
 	},
 	{
 		"tab": "SSH",
+		"helpUrl": "https://hackolade.com/help/SSH7.html",
 		"structure": [
 			{
 				"inputLabel": "Use SSH Tunnel",
