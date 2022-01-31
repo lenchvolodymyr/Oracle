@@ -480,38 +480,38 @@ const getDDL = async (tableName, schema, logger) => {
 		const queryResult = await execute(`
 			SELECT JSON_OBJECT(
 			'tableDDL' VALUE DBMS_METADATA.GET_DDL('TABLE', T.TABLE_NAME, T.OWNER),
-            'countOfRecords' VALUE NVL(T.NUM_ROWS, 0),
-            'indexDDLs' VALUE (
-                SELECT JSON_ARRAYAGG(DBMS_METADATA.GET_DDL('INDEX', INDEX_NAME, OWNER) RETURNING CLOB)
+			'countOfRecords' VALUE NVL(T.NUM_ROWS, 0),
+			'indexDDLs' VALUE (
+				SELECT JSON_ARRAYAGG(DBMS_METADATA.GET_DDL('INDEX', INDEX_NAME, OWNER) RETURNING CLOB)
 				FROM ALL_INDEXES
 				WHERE TABLE_OWNER=T.OWNER 
-                    AND TABLE_NAME=T.TABLE_NAME
-                    AND INDEX_NAME NOT IN (
-                        SELECT CONSTRAINT_NAME 
-                        FROM ALL_CONSTRAINTS 
-                        WHERE CONSTRAINT_TYPE='P' 
-                        AND OWNER=T.OWNER 
-                        AND TABLE_NAME=T.TABLE_NAME
-                    )
-                ),
-            'jsonColumns' VALUE (
-                SELECT JSON_ARRAYAGG(JSON_OBJECT('name' VALUE COLUMN_NAME, 'datatype' VALUE DATA_TYPE) RETURNING CLOB)
+					AND TABLE_NAME=T.TABLE_NAME
+					AND INDEX_NAME NOT IN (
+						SELECT CONSTRAINT_NAME 
+						FROM ALL_CONSTRAINTS 
+						WHERE CONSTRAINT_TYPE='P' 
+						AND OWNER=T.OWNER 
+						AND TABLE_NAME=T.TABLE_NAME
+					)
+				),
+			'jsonColumns' VALUE (
+				SELECT JSON_ARRAYAGG(JSON_OBJECT('name' VALUE COLUMN_NAME, 'datatype' VALUE DATA_TYPE) RETURNING CLOB)
 				FROM ALL_TAB_COLUMNS 
 				WHERE TABLE_NAME=T.TABLE_NAME 
 				AND OWNER=T.OWNER
 				AND DATA_TYPE IN ('CLOB', 'BLOB', 'NVARCHAR2', 'JSON')
-            ),
-            'tableComment' VALUE (
-                SELECT COMMENTS
-				FROM ALL_TAB_COMMENTS 
-                WHERE OWNER = T.OWNER AND TABLE_NAME = T.TABLE_NAME 
 			),
-            'columnComments' VALUE (
-                SELECT JSON_ARRAYAGG(JSON_OBJECT('name' VALUE COLUMN_NAME, 'comment' VALUE COMMENTS) RETURNING CLOB)
-                FROM ALL_COL_COMMENTS
-                WHERE OWNER = T.OWNER AND TABLE_NAME = T.TABLE_NAME 
-            ) RETURNING CLOB
-            )
+			'tableComment' VALUE (
+				SELECT COMMENTS
+				FROM ALL_TAB_COMMENTS 
+				WHERE OWNER = T.OWNER AND TABLE_NAME = T.TABLE_NAME 
+			),
+			'columnComments' VALUE (
+				SELECT JSON_ARRAYAGG(JSON_OBJECT('name' VALUE COLUMN_NAME, 'comment' VALUE COMMENTS) RETURNING CLOB)
+				FROM ALL_COL_COMMENTS
+				WHERE OWNER = T.OWNER AND TABLE_NAME = T.TABLE_NAME 
+			) RETURNING CLOB
+			)
 			FROM ALL_TABLES T
 			WHERE T.OWNER='${schema}' AND T.TABLE_NAME='${tableName}'
 		`);
@@ -539,7 +539,7 @@ const getDDL = async (tableName, schema, logger) => {
 			}, `Getting DDL from "${schema}"."${tableName}"`);
 			return {
 				ddl: '',
-				jsonColumns: '',
+				jsonColumns: [],
 				countOfRecords: 0,
 			};
 		}
@@ -550,7 +550,7 @@ const getDDL = async (tableName, schema, logger) => {
 		}, `Getting DDL from "${schema}"."${tableName}"`);
 		return {
 			ddl: '',
-			jsonColumns: {},
+			jsonColumns: [],
 			countOfRecords: 0,
 		};
 	}
