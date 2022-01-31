@@ -356,6 +356,25 @@ const authByCredentials = ({ connectString, username, password, queryRequestTime
 	});
 };
 
+const getSchemaNames = async ({includeSystemCollection, schemaName}, logger) => {
+	const selectStatement = 'SELECT USERNAME FROM ALL_USERS';
+	let query;
+	let stmt = '';
+	if (schemaName) {
+		stmt = `USERNAME = '${schemaName}'`;
+	}
+	if (includeSystemCollection) {
+		query = `${selectStatement}${stmt ? ` WHERE ${stmt}`: ''}`;
+	} else {
+		query = `${selectStatement} WHERE ORACLE_MAINTAINED = 'N'${stmt ? ` AND ${stmt}`: ''}`;
+	}
+	return await execute(query).catch(e => {
+		logger.info({ message: 'Cannot retrieve schema names' });
+		logger.error(e);
+		return [];
+	});
+};
+
 const pairToObj = (pairs) => _.reduce(pairs, (obj, pair) => ({ ...obj, [pair[0]]: [...(obj[pair[0]] || []), pair[1]] }), {});
 
 const selectEntities = (selectStatement, includeSystemCollection, schemaName) => {
@@ -686,6 +705,7 @@ module.exports = {
 	disconnect,
 	setDependencies,
 	getEntitiesNames,
+	getSchemaNames,
 	splitEntityNames,
 	getDDL,
 	getJsonSchema,

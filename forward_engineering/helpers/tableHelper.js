@@ -36,7 +36,7 @@ module.exports = ({ _, getColumnsList, checkAllKeysDeactivated, commentIfDeactiv
             { key: 'partitioning', getValue: getPartitioning },
             { key: 'selectStatement', getValue: getBasicValue('AS') },
         ]
-            .map(config => wrap(config.getValue(tableData[config.key], tableData)))
+            .map(config => tableData[config.key] ? wrap(config.getValue(tableData[config.key], tableData)) : '')
             .filter(Boolean)
             .join('');
 

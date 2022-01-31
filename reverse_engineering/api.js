@@ -42,6 +42,19 @@ module.exports = {
 		}
 	},
 
+	async getSchemaNames(connectionInfo, logger, callback, app) {
+		try {
+			logInfo('Get schemas', connectionInfo, logger);
+			await this.connect(connectionInfo, logger, () => { }, app);
+			const schemas = await oracleHelper.getSchemaNames();
+			logger.log('info', schemas, 'All schemas list', connectionInfo.hiddenKeys);
+			return callback(null, schemas);
+		} catch (error) {
+			logger.log('error', { message: error.message, stack: error.stack, error }, 'Get schemas');
+			return callback({ message: error.message, stack: error.stack });
+		}
+	},
+
 	async getDbCollectionsNames(connectionInfo, logger, callback, app) {
 		try {
 			
