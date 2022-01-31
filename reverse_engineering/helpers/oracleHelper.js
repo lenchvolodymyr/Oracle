@@ -478,60 +478,71 @@ const splitEntityNames = names => {
 const getDDL = async (tableName, schema, logger) => {
 	try {
 		const queryResult = await execute(`
-			SELECT DBMS_METADATA.GET_DDL('TABLE', TABLE_NAME, OWNER) 
-				|| ';' 
-				|| LISTAGG(STATEMENT, '\r\n') WITHIN GROUP (ORDER BY STATEMENT)
-				|| '\r\n' 
-				|| (
-					SELECT LISTAGG(TC.DDL_COMMENTS, '\r\n') || '\r\n' || LISTAGG(CC.DDL_COMMENTS, '\r\n')
-					FROM (
-						SELECT 'COMMENT ON TABLE ' || OWNER || '.' || TABLE_NAME || ' IS '|| '''' || REPLACE(COMMENTS,'''','''''') || ''';' AS DDL_COMMENTS, TABLE_NAME 
-						FROM ALL_TAB_COMMENTS WHERE TABLE_NAME = '${tableName}' AND OWNER = '${schema}'
-					) TC FULL OUTER JOIN (
-						SELECT 'COMMENT ON COLUMN ' || OWNER || '.' || TABLE_NAME || '.' || COLUMN_NAME || ' IS '|| '''' || REPLACE(COMMENTS,'''','''''') || ''';' AS DDL_COMMENTS, TABLE_NAME
-						FROM ALL_COL_COMMENTS WHERE TABLE_NAME = '${tableName}' AND OWNER = '${schema}'
-					) CC ON TC.TABLE_NAME = CC.TABLE_NAME
-					WHERE TC.TABLE_NAME = '${tableName}'
-					GROUP BY TC.TABLE_NAME
-				) AS ddl,
-				NVL(NUM_ROWS,0) AS n_rows,
-				(SELECT LISTAGG(COLUMN_NAME, ',') || ':' || LISTAGG(DATA_TYPE, ',')
+			SELECT JSON_OBJECT(
+			'tableDDL' VALUE DBMS_METADATA.GET_DDL('TABLE', T.TABLE_NAME, T.OWNER),
+            'countOfRecords' VALUE NVL(T.NUM_ROWS, 0),
+            'indexDDLs' VALUE (
+                SELECT JSON_ARRAYAGG(DBMS_METADATA.GET_DDL('INDEX', INDEX_NAME, OWNER) RETURNING CLOB)
+				FROM ALL_INDEXES
+				WHERE TABLE_OWNER=T.OWNER 
+                    AND TABLE_NAME=T.TABLE_NAME
+                    AND INDEX_NAME NOT IN (
+                        SELECT CONSTRAINT_NAME 
+                        FROM ALL_CONSTRAINTS 
+                        WHERE CONSTRAINT_TYPE='P' 
+                        AND OWNER=T.OWNER 
+                        AND TABLE_NAME=T.TABLE_NAME
+                    )
+                ),
+            'jsonColumns' VALUE (
+                SELECT JSON_ARRAYAGG(JSON_OBJECT('name' VALUE COLUMN_NAME, 'datatype' VALUE DATA_TYPE) RETURNING CLOB)
 				FROM ALL_TAB_COLUMNS 
-				WHERE TABLE_NAME='${tableName}' 
-				AND OWNER='${schema}' 
+				WHERE TABLE_NAME=T.TABLE_NAME 
+				AND OWNER=T.OWNER
 				AND DATA_TYPE IN ('CLOB', 'BLOB', 'NVARCHAR2', 'JSON')
-				GROUP BY OWNER, TABLE_NAME) AS json_columns
-			FROM ALL_TABLES LEFT JOIN (
-				SELECT DBMS_METADATA.GET_DDL('INDEX',u.index_name, OWNER) || ';' AS STATEMENT, TABLE_NAME AS TN
-				FROM ALL_INDEXES u
-				WHERE u.TABLE_OWNER='${schema}' 
-				AND u.TABLE_NAME='${tableName}'
-				AND u.INDEX_NAME NOT IN (
-					SELECT CONSTRAINT_NAME 
-					FROM ALL_CONSTRAINTS 
-					WHERE CONSTRAINT_TYPE='P' 
-					AND OWNER='${schema}' 
-					AND TABLE_NAME='${tableName}'
-				)) 
-			ON TABLE_NAME=TN 
-			WHERE OWNER='${schema}' AND TABLE_NAME='${tableName}'
-			GROUP BY OWNER, TABLE_NAME, NUM_ROWS
+            ),
+            'tableComment' VALUE (
+                SELECT COMMENTS
+				FROM ALL_TAB_COMMENTS 
+                WHERE OWNER = T.OWNER AND TABLE_NAME = T.TABLE_NAME 
+			),
+            'columnComments' VALUE (
+                SELECT JSON_ARRAYAGG(JSON_OBJECT('name' VALUE COLUMN_NAME, 'comment' VALUE COMMENTS) RETURNING CLOB)
+                FROM ALL_COL_COMMENTS
+                WHERE OWNER = T.OWNER AND TABLE_NAME = T.TABLE_NAME 
+            ) RETURNING CLOB
+            )
+			FROM ALL_TABLES T
+			WHERE T.OWNER='${schema}' AND T.TABLE_NAME='${tableName}'
 		`);
-		const row = _.first(queryResult);
-		const ddl = await _.first(row).getData();
-		const countOfRecords = row[1] || 0;
-		const namesAndTypes = row[2] ? row[2].split(':') : [];
-		let jsonColumns = {};
-		if (!_.isEmpty(namesAndTypes)) {
-			jsonColumns = _.zipObject(namesAndTypes[0].split(','), namesAndTypes[1].split(','));
-		}
-		const queryObj = {
-			ddl,
-			jsonColumns,
-			countOfRecords,
+		const row = await (_.first(_.first(queryResult))?.getData());
+		try {
+			const queryObj = JSON.parse(row);
+			logger.log('info', queryObj, `Getting DDL from "${schema}"."${tableName}"`);
+			const tableComment = queryObj.tableComment 
+				? `COMMENT ON TABLE ${escapeName(schema)}.${escapeName(tableName)} IS ${escapeComment(queryObj.tableComment)};` 
+				: '';
+			const columnComments = _.map(queryObj.columnComments, 
+				c => `COMMENT ON COLUMN ${escapeName(schema)}.${escapeName(tableName)}.${escapeName(c.name)}  IS ${escapeComment(c.comment)};`);
+			return {
+				ddl: `${queryObj.tableDDL};
+				${_.join(queryObj.indexDDLs, ';\n')};
+				${tableComment}\n
+				${_.join(columnComments, '\n')}`,
+				jsonColumns: queryObj.jsonColumns,
+				countOfRecords: queryObj.countOfRecords,
 			};
-		logger.log('info', queryObj, `Getting DDL from "${schema}"."${tableName}"`);
-		return queryObj;
+		} catch(err) {
+			logger.log('error', {
+				message: 'Cannot parse query result: \n\n' + row,
+				error: { message: err.message, stack: err.stack, err: _.omit(err, ['message', 'stack']) }
+			}, `Getting DDL from "${schema}"."${tableName}"`);
+			return {
+				ddl: '',
+				jsonColumns: '',
+				countOfRecords: 0,
+			};
+		}
 	} catch (err) {
 		logger.log('error', {
 			message: 'Cannot get DDL for table: ' + tableName,
@@ -578,9 +589,15 @@ const escapeName = (name) => {
 	if (/[\s\da-z]/.test(name)) {
 		return `"${name}"`;
 	}
-
 	return name;
 };
+
+const escapeComment = (name) => {
+	if (/[\s\da-z]/.test(name)) {
+		return `'${name}'`;
+	}
+	return name; 
+}
 
 const replaceNames = (names, records) => {
 	return records.map((record) => {
@@ -592,8 +609,8 @@ const replaceNames = (names, records) => {
 };
 
 const selectRecords = async ({ tableName, limit, jsonColumns, schema }) => {
-	const names = Object.keys(jsonColumns);
-	const records = await execute(`SELECT ${names.map((c) => escapeName(c)).join(', ')} FROM ${escapeName(schema)}.${escapeName(tableName)} FETCH NEXT ${limit} ROWS ONLY`, {
+	const names = _.map(jsonColumns, c => c.name);
+	const records = await execute(`SELECT ${names.map(n => escapeName(n)).join(', ')} FROM ${escapeName(schema)}.${escapeName(tableName)} FETCH NEXT ${limit} ROWS ONLY`, {
 		outFormat: oracleDB.OBJECT,
 	});
 	const result = await readRecordsValues(replaceNames(names, records));
@@ -631,9 +648,9 @@ const getJsonSchema = async (jsonColumns, records) => {
 		NVARCHAR2: { type: 'char', mode: 'nvarchar2' },
 		JSON: { type: 'json' }
 	};
-	const properties = Object.keys(jsonColumns).reduce((properties, key) => {
-		const columnName = key;
-		const columnType = jsonColumns?.key;
+	const properties = jsonColumns.reduce((properties, column) => {
+		const columnName = column.name;
+		const columnType = column.datatype;
 		const schema = types[columnType];
 
 		if (!schema) {
