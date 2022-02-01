@@ -8,8 +8,7 @@ let _;
 module.exports = {
 	async connect(connectionInfo, logger, callback, app) {
 		initDependencies(app);
-		logger.clear();
-		logger.log('info', connectionInfo, 'connectionInfo', connectionInfo.hiddenKeys);
+		logInfo('Connect to instance', connectionInfo, logger);
 		oracleHelper.logEnvironment(logger);
 		try {
 			await oracleHelper.connect(connectionInfo, (message) => {
@@ -33,7 +32,6 @@ module.exports = {
 
 	async testConnection(connectionInfo, logger, callback, app) {
 		try {
-			logInfo('Test connection', connectionInfo, logger);
 			await this.connect(connectionInfo, logger, () => { }, app);
 			callback(null);
 		} catch (error) {
@@ -57,8 +55,6 @@ module.exports = {
 
 	async getDbCollectionsNames(connectionInfo, logger, callback, app) {
 		try {
-			
-			logInfo('Retrieving databases and tables information', connectionInfo, logger);
 			await this.connect(connectionInfo, logger, () => { }, app);
 			const objects = await oracleHelper.getEntitiesNames(connectionInfo, {
 				info: (data) => {
