@@ -35,7 +35,8 @@
                 "viewLevel": "model",
                 "disablePipelines": true
             },
-            "compositeRelationship": true
+            "compositeRelationship": true,
+            "enableFetchSystemEntitiesCheckbox": true
         }
     },
     "description": "Hackolade plugin for Oracle and Autonomous databases",
