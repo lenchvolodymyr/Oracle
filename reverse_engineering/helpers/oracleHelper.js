@@ -613,7 +613,7 @@ const escapeName = (name) => {
 
 const escapeComment = (name) => {
 	if (/[\s\da-z]/.test(name)) {
-		return `'${name}'`;
+		return `'${_.replace(name, "'", "''")}'`;
 	}
 	return name; 
 }
