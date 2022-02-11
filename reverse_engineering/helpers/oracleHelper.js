@@ -612,10 +612,7 @@ const escapeName = (name) => {
 };
 
 const escapeComment = (name) => {
-	if (/[\s\da-z]/.test(name)) {
-		return `'${_.replace(name, "'", "''")}'`;
-	}
-	return name; 
+	return `'${name.replaceAll("'", "''")}'`; 
 }
 
 const replaceNames = (names, records) => {
