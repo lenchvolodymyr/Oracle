@@ -1,7 +1,7 @@
 {
     "name": "Oracle",
-    "version": "0.1.4",
-    "versionDate": "2022-03-25",
+    "version": "0.1.5",
+    "versionDate": "2022-04-12",
     "author": "hackolade",
     "engines": {
         "hackolade": "5.4.3",
@@ -34,6 +34,9 @@
                 "enabled": true,
                 "viewLevel": "model",
                 "disablePipelines": true
+            },
+            "relationships": {
+                "compositeRelationships": true
             },
             "compositeRelationship": true,
             "enableFetchSystemEntitiesCheckbox": true
