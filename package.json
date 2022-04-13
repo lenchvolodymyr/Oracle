@@ -1,10 +1,10 @@
 {
     "name": "Oracle",
-    "version": "0.0.92",
-    "versionDate": "2022-02-01",
+    "version": "0.1.5",
+    "versionDate": "2022-04-12",
     "author": "hackolade",
     "engines": {
-        "hackolade": "5.4.0",
+        "hackolade": "5.4.3",
         "hackoladePlugin": "1.2.0"
     },
     "contributes": {
@@ -35,7 +35,11 @@
                 "viewLevel": "model",
                 "disablePipelines": true
             },
-            "compositeRelationship": true
+            "relationships": {
+                "compositeRelationships": true
+            },
+            "compositeRelationship": true,
+            "enableFetchSystemEntitiesCheckbox": true
         }
     },
     "description": "Hackolade plugin for Oracle and Autonomous databases",
