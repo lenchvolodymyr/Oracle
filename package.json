@@ -1,7 +1,7 @@
 {
     "name": "Oracle",
-    "version": "0.1.5",
-    "versionDate": "2022-04-12",
+    "version": "0.1.6",
+    "versionDate": "2022-04-29",
     "author": "hackolade",
     "engines": {
         "hackolade": "5.4.3",
@@ -38,7 +38,6 @@
             "relationships": {
                 "compositeRelationships": true
             },
-            "compositeRelationship": true,
             "enableFetchSystemEntitiesCheckbox": true
         }
     },
