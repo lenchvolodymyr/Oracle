@@ -26,15 +26,18 @@ module.exports = ({
 
     const getColumnConstraints = ({nullable, unique, primaryKey, primaryKeyOptions, uniqueKeyOptions}) => {
         const getOptionsString = ({
+            constraintName,
             deferClause,
 			rely,
 			validate,
 			indexClause,
 			exceptionClause,
-        }) => `${deferClause ? ` ${deferClause}` : ''}${rely ? ` ${rely}` : ''}${indexClause ? ` ${indexClause}` : ''}${validate ? ` ${validate}` : ''}${exceptionClause ? ` ${exceptionClause}` : ''}`;
-        const primaryKeyString = primaryKey ? ` PRIMARY KEY${getOptionsString(primaryKeyOptions || {})}` : '';
-        const uniqueKeyString = unique ? ` UNIQUE${getOptionsString(uniqueKeyOptions || {})}` : '';
-        return `${nullable ? '' : ' NOT NULL'}${primaryKeyString}${uniqueKeyString}`;
+        }) => ({constraintString: `${constraintName ? ` CONSTRAINT ${wrapInQuotes(_.trim(constraintName))}` : ''}`, statement: `${deferClause ? ` ${deferClause}` : ''}${rely ? ` ${rely}` : ''}${indexClause ? ` ${indexClause}` : ''}${validate ? ` ${validate}` : ''}${exceptionClause ? ` ${exceptionClause}` : ''}`});
+        const {constraintString, statement} = getOptionsString(primaryKeyOptions || uniqueKeyOptions || {}); 
+        const primaryKeyString = primaryKey ? ` PRIMARY KEY` : '';
+        const uniqueKeyString = unique ? ` UNIQUE$` : '';
+        const nullableString = nullable ? '' : ' NOT NULL';
+        return `${nullableString}${constraintString}${primaryKeyString}${uniqueKeyString}${statement}`;
     };
 
     const replaceTypeByVersion = (type, version) => {

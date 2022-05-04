@@ -229,13 +229,12 @@ module.exports = ({ _, getColumnsList, checkAllKeysDeactivated, commentIfDeactiv
     };
 
     const createKeyConstraint = (templates, isParentActivated) => keyData => {
-        const constraintName = wrapInQuotes(_.trim(keyData.name));
         const isAllColumnsDeactivated = checkAllKeysDeactivated(keyData.columns);
         const columns = getColumnsList(keyData.columns, isAllColumnsDeactivated, isParentActivated);
         
         return {
             statement: assignTemplates(templates.createKeyConstraint, {
-                constraintName: keyData.name ? `CONSTRAINT ${wrapInQuotes(constraintName)} ` : '',
+                constraintName: keyData.constraintName ? `CONSTRAINT ${wrapInQuotes(keyData.constraintName)} ` : '',
                 keyType: keyData.keyType,
                 columns,
             }),
