@@ -32,7 +32,10 @@ module.exports = ({
 			validate,
 			indexClause,
 			exceptionClause,
-        }) => ({constraintString: `${constraintName ? ` CONSTRAINT ${wrapInQuotes(_.trim(constraintName))}` : ''}`, statement: `${deferClause ? ` ${deferClause}` : ''}${rely ? ` ${rely}` : ''}${indexClause ? ` ${indexClause}` : ''}${validate ? ` ${validate}` : ''}${exceptionClause ? ` ${exceptionClause}` : ''}`});
+        }) => ({
+            constraintString: `${constraintName ? ` CONSTRAINT ${wrapInQuotes(_.trim(constraintName))}` : ''}`, 
+            statement: `${deferClause ? ` ${deferClause}` : ''}${rely ? ` ${rely}` : ''}${indexClause ? ` ${indexClause}` : ''}${validate ? ` ${validate}` : ''}${exceptionClause ? ` ${exceptionClause}` : ''}`
+        });
         const {constraintString, statement} = getOptionsString(primaryKeyOptions || uniqueKeyOptions || {}); 
         const primaryKeyString = primaryKey ? ` PRIMARY KEY` : '';
         const uniqueKeyString = unique ? ` UNIQUE$` : '';
