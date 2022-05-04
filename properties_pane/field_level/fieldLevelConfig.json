@@ -662,7 +662,7 @@ making sure that you maintain a proper JSON format.
 				"propertyTooltip": "Setting for Scale must be between -84 and 127",
 				"minValue": -84,
 				"maxValue": 127,
-				"allowNegative": false,
+				"allowNegative": true,
 				"typeDecorator": true,
 				"dependency": {
 					"type": "and",
