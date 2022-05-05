@@ -38,7 +38,7 @@ module.exports = ({
         });
         const {constraintString, statement} = getOptionsString(primaryKeyOptions || uniqueKeyOptions || {}); 
         const primaryKeyString = primaryKey ? ` PRIMARY KEY` : '';
-        const uniqueKeyString = unique ? ` UNIQUE$` : '';
+        const uniqueKeyString = unique ? ` UNIQUE` : '';
         const nullableString = nullable ? '' : ' NOT NULL';
         return `${nullableString}${constraintString}${primaryKeyString}${uniqueKeyString}${statement}`;
     };

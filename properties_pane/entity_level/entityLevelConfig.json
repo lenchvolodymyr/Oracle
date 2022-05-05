@@ -880,11 +880,7 @@ making sure that you maintain a proper JSON format.
 				"propertyName": "Key",
 				"propertyKeyword": "compositePrimaryKey",
 				"propertyType": "primaryKeySetter",
-				"abbr": "pk",
-				"attributeList": [
-					"ascending",
-					"descending"
-				]
+				"abbr": "pk"
 			}]
 		}, 
 		{
