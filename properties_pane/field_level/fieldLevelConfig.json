@@ -828,7 +828,7 @@ making sure that you maintain a proper JSON format.
 						"options": [
 							"",
 							"RELY",
-							"NO RELY"
+							"NORELY"
 						]
 					},
 					{
