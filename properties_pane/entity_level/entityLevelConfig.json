@@ -901,10 +901,6 @@ making sure that you maintain a proper JSON format.
 				"template": "collectiontree",
 				"isCompositeKey": true,
 				"abbr": " "
-			}, {
-				"propertyName": "Partition name",
-				"propertyKeyword": "partitionName",
-				"propertyType": "text"
 			}]
 		}]
 	},
