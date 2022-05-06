@@ -140,6 +140,7 @@ module.exports = (baseProvider, options, app) => {
                 dayPrecision: jsonSchema.dayPrecision,
                 lengthSemantics: jsonSchema.lengthSemantics,
                 encryption: jsonSchema.encryption,
+                identity: jsonSchema.identity,
             };
         },
 
