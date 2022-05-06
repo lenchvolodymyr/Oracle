@@ -50,8 +50,25 @@ module.exports = ({
         return type;
     };
 
-    const getColumnDefault = ({default: defaultValue}) => {
-        if (defaultValue) {
+    const getColumnDefault = ({default: defaultValue, identity}) => {
+        if (!_.isEmpty(identity) && identity.generated) {
+            const getGenerated = ({generated, generatedOnNull}) => {
+                if (generated === 'BY DEFAULT') {
+                    return ` ${generated} ${generatedOnNull ? ' ON NULL' : ''}`;
+                } else {
+                    return ` ALWAYS`;
+                }
+            };
+
+            const getOptions = ({identityStart, identityIncrement, numberToCache}) => {
+                const startWith = identityStart ? ` START WITH ${identityStart}` : '';
+                const incrementBy = identityIncrement ? ` INCREMENT BY ${identityIncrement}` : '';
+                const cache = numberToCache ? ` CACHE ${numberToCache}` : ' NOCACHE';
+                return `${startWith}${incrementBy}${cache}`;
+            };
+
+            return ` GENERATED ${getGenerated(identity)} AS IDENTITY (${_.trim(getOptions(identity))})`;
+        } else if (defaultValue) {
             return ` DEFAULT ${defaultValue}`;
         }
         return '';
