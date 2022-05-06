@@ -705,13 +705,50 @@ making sure that you maintain a proper JSON format.
 				"propertyTooltip": "Creates an identity column in a table",
 				"structure": [
 					{
+						"propertyName": "Generated",
+						"propertyKeyword": "generated",
+						"propertyTooltip": "Select type of value generation",
+						"propertyType": "select",
+						"options": [
+							"",
+							"ALWAYS",
+							"BY DEFAULT"
+						]
+					},
+					{
+						"propertyName": "On null",
+						"propertyKeyword": "generatedOnNull",
+						"propertyTooltip": "Generate a value for the identity column only if a NULL value provided",
+						"propertyType": "checkbox",
+						"dependency": {
+							"key": "generated",
+							"value": "BY DEFAULT"
+						}
+					},
+					{
 						"propertyName": "Start",
 						"propertyKeyword": "identityStart",
 						"propertyTooltip": "Is the value that is used for the very first row loaded into the table",
 						"propertyType": "numeric",
 						"valueType": "number",
 						"minValue": 1,
-						"step": 1
+						"step": 1,
+						"dependency": {
+							"type": "not",
+							"values": {
+								"type": "or",
+								"values": [
+									{
+										"key": "generated",
+										"exist": false
+									},
+									{
+										"key": "generated",
+										"value": ""
+									}
+								]
+							}
+						}
 					},
 					{
 						"propertyName": "Increment",
@@ -720,7 +757,48 @@ making sure that you maintain a proper JSON format.
 						"propertyType": "numeric",
 						"valueType": "number",
 						"minValue": 1,
-						"step": 1
+						"step": 1,
+						"dependency": {
+							"type": "not",
+							"values": {
+								"type": "or",
+								"values": [
+									{
+										"key": "generated",
+										"exist": false
+									},
+									{
+										"key": "generated",
+										"value": ""
+									}
+								]
+							}
+						}
+					},
+					{
+						"propertyName": "Cache",
+						"propertyKeyword": "numberToCache",
+						"propertyTooltip": "Is a number of values that Oracle should generate beforehand to improve the performance.",
+						"propertyType": "numeric",
+						"valueType": "number",
+						"minValue": 1,
+						"step": 1,
+						"dependency": {
+							"type": "not",
+							"values": {
+								"type": "or",
+								"values": [
+									{
+										"key": "generated",
+										"exist": false
+									},
+									{
+										"key": "generated",
+										"value": ""
+									}
+								]
+							}
+						}
 					}
 				]
 			},
