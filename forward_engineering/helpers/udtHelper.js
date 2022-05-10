@@ -6,6 +6,7 @@ module.exports = ({
     getNamePrefixedWithSchemaName,
     wrapInQuotes,
 }) => {
+    const notPlainTypes = ['OBJECT_UDT', 'VARRAY', 'TABLE', 'COLLECTION_UDT'];
     const getPlainUdt = (udt, getColumnDefinition) => {
         const udtName = getNamePrefixedWithSchemaName(udt.name, udt.schemaName);
         switch (udt.type) {
@@ -35,5 +36,10 @@ module.exports = ({
         });
     };
 
-    return { getUserDefinedType };
+	const isNotPlainType = (definitionJsonSchema) => {
+        const type = _.toUpper(definitionJsonSchema.mode || definitionJsonSchema.type);
+		return notPlainTypes.includes(type);
+	};
+
+    return { getUserDefinedType, isNotPlainType };
 };
