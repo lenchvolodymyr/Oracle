@@ -58,7 +58,7 @@ module.exports = (baseProvider, options, app) => {
         assignTemplates,
     });
 
-    const { getUserDefinedType } = require('./helpers/udtHelper')({
+    const { getUserDefinedType, isNotPlainType } = require('./helpers/udtHelper')({
         _,
         commentIfDeactivated,
         assignTemplates,
@@ -142,6 +142,15 @@ module.exports = (baseProvider, options, app) => {
                 encryption: jsonSchema.encryption,
                 identity: jsonSchema.identity,
             };
+        },
+
+        hydrateJsonSchemaColumn(jsonSchema, definitionJsonSchema) {
+            if (!jsonSchema.$ref || _.isEmpty(definitionJsonSchema) || isNotPlainType(definitionJsonSchema)) {
+                return jsonSchema;
+            }
+
+            jsonSchema = _.omit(jsonSchema, '$ref');
+            return  { ...definitionJsonSchema, ...jsonSchema };
         },
 
         convertColumnDefinition(columnDefinition, template = templates.columnDefinition) {
