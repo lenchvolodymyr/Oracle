@@ -146,11 +146,11 @@ module.exports = (baseProvider, options, app) => {
 
         hydrateJsonSchemaColumn(jsonSchema, definitionJsonSchema) {
             if (!jsonSchema.$ref || _.isEmpty(definitionJsonSchema) || isNotPlainType(definitionJsonSchema)) {
-				return jsonSchema;
-			}
+                return jsonSchema;
+            }
 
-			jsonSchema = _.omit(jsonSchema, '$ref');
-			return  { ...definitionJsonSchema, ...jsonSchema };
+            jsonSchema = _.omit(jsonSchema, '$ref');
+            return  { ...definitionJsonSchema, ...jsonSchema };
         },
 
         convertColumnDefinition(columnDefinition, template = templates.columnDefinition) {
