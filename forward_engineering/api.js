@@ -20,16 +20,33 @@ module.exports = {
 				);
 			}
 
+			const modelDefinitions = JSON.parse(data.modelDefinitions);
+			const internalDefinitions = JSON.parse(data.internalDefinitions);
+			const externalDefinitions = JSON.parse(data.externalDefinitions);
 			const dbVersion = data.modelData[0]?.dbVersion;
 			const containersScripts = getAlterContainersScripts(collection);
-			const collectionsScripts = getAlterCollectionsScripts(collection, app, dbVersion);
+			const collectionsScripts = getAlterCollectionsScripts({
+				collection,
+				app,
+				dbVersion,
+				modelDefinitions,
+				internalDefinitions,
+				externalDefinitions,
+			});
 			const viewScripts = getAlterViewScripts(collection, app);
-			const modelDefinitionsScripts = getAlterModelDefinitionsScripts(collection, app);
+			const modelDefinitionsScripts = getAlterModelDefinitionsScripts({
+				collection,
+				app,
+				dbVersion,
+				modelDefinitions,
+				internalDefinitions,
+				externalDefinitions,
+			});
 			const script = [
 				...containersScripts,
+				...modelDefinitionsScripts,
 				...collectionsScripts,
 				...viewScripts,
-				...modelDefinitionsScripts,
 			].join('\n\n');
 
 			const applyDropStatements = data.options?.additionalOptions?.some(
@@ -49,6 +66,7 @@ module.exports = {
 	generateContainerScript(data, logger, callback, app) {
 		try {
 			data.jsonSchema = data.collections[0];
+			data.internalDefinitions = Object.values(data.internalDefinitions)[0];
 			this.generateScript(data, logger, callback, app);
 		} catch (error) {
 			logger.log('error', { message: error.message, stack: error.stack }, 'Oracle Forward-Engineering Error');
