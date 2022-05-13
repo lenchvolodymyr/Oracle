@@ -110,7 +110,7 @@ module.exports = (baseProvider, options, app) => {
             return schemaStatement;
         },
 
-        hydrateColumn({ columnDefinition, jsonSchema, schemaData, definitionJsonSchema }) {
+        hydrateColumn({ columnDefinition, jsonSchema, schemaData, definitionJsonSchema = {} }) {
             const dbVersion = schemaData.dbVersion;
             const type = jsonSchema.$ref ? columnDefinition.type : _.toUpper(jsonSchema.mode || jsonSchema.type);
             return {
