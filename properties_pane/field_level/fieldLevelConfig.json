@@ -374,8 +374,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}
 								]
 							}
@@ -411,8 +420,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}]
 								}
 							}]
@@ -952,8 +970,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}
 								]
 							}
@@ -989,8 +1016,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}]
 								}
 							}]
@@ -1432,8 +1468,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}
 								]
 							}
@@ -1469,8 +1514,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}]
 								}
 							}]
@@ -1978,8 +2032,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}
 								]
 							}
@@ -2015,8 +2078,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}]
 								}
 							}]
@@ -2376,8 +2448,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}
 								]
 							}
@@ -2413,8 +2494,17 @@ making sure that you maintain a proper JSON format.
 										"value": true
 									},
 									{
-										"key": "compositeUniqueKey",
-										"value": false
+										"type": "or",
+										"values": [
+											{
+												"key": "compositeUniqueKey",
+												"value": false
+											},
+											{
+												"key": "compositeUniqueKey",
+												"exist": false
+											}
+										]
 									}]
 								}
 							}]
