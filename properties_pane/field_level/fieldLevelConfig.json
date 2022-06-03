@@ -343,7 +343,7 @@ making sure that you maintain a proper JSON format.
 							}
 						},
 						{
-							"tooltip": "Remove the existing single column primary key definition prior to unlock the possibility to mark this column as the new primary key for this table",
+							"tooltip": "Another column has already been selected as primary key.  You must unselect it prior to either selecting this column, or creating a compound primary key.",
 							"dependency": {
 								"level": "siblings",
 								"key": "primaryKey",
@@ -939,7 +939,7 @@ making sure that you maintain a proper JSON format.
 							}
 						},
 						{
-							"tooltip": "Remove the existing single column primary key definition prior to unlock the possibility to mark this column as the new primary key for this table",
+							"tooltip": "Another column has already been selected as primary key.  You must unselect it prior to either selecting this column, or creating a compound primary key.",
 							"dependency": {
 								"level": "siblings",
 								"key": "primaryKey",
@@ -1437,7 +1437,7 @@ making sure that you maintain a proper JSON format.
 							}
 						},
 						{
-							"tooltip": "Remove the existing single column primary key definition prior to unlock the possibility to mark this column as the new primary key for this table",
+							"tooltip": "Another column has already been selected as primary key.  You must unselect it prior to either selecting this column, or creating a compound primary key.",
 							"dependency": {
 								"level": "siblings",
 								"key": "primaryKey",
@@ -2001,7 +2001,7 @@ making sure that you maintain a proper JSON format.
 							}
 						},
 						{
-							"tooltip": "Remove the existing single column primary key definition prior to unlock the possibility to mark this column as the new primary key for this table",
+							"tooltip": "Another column has already been selected as primary key.  You must unselect it prior to either selecting this column, or creating a compound primary key.",
 							"dependency": {
 								"level": "siblings",
 								"key": "primaryKey",
@@ -2417,7 +2417,7 @@ making sure that you maintain a proper JSON format.
 							}
 						},
 						{
-							"tooltip": "Remove the existing single column primary key definition prior to unlock the possibility to mark this column as the new primary key for this table",
+							"tooltip": "Another column has already been selected as primary key.  You must unselect it prior to either selecting this column, or creating a compound primary key.",
 							"dependency": {
 								"level": "siblings",
 								"key": "primaryKey",
