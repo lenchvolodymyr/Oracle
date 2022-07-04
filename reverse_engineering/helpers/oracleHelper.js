@@ -543,11 +543,12 @@ const getDDL = async (tableName, schema, logger) => {
 				: '';
 			const columnComments = _.map(queryObj.columnComments, 
 				c => `COMMENT ON COLUMN ${escapeName(schema)}.${escapeName(tableName)}.${escapeName(c.name)}  IS ${escapeComment(c.comment)};`);
-			return {
-				ddl: `${queryObj.tableDDL};
+			const ddl = `${queryObj.tableDDL};
 				${_.join(queryObj.indexDDLs, ';\n')};
 				${tableComment}\n
-				${_.join(columnComments, '\n')}`,
+				${_.join(columnComments, '\n')}`;
+			return {
+				ddl: ddl.replaceAll(/[;]{2,}/g, ';'),
 				jsonColumns: queryObj.jsonColumns,
 				countOfRecords: queryObj.countOfRecords,
 			};
