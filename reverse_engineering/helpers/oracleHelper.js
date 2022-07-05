@@ -495,7 +495,9 @@ const splitEntityNames = names => {
 };
 
 const setSQLTerminator = () => {
-	return execute(`EXECUTE DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM,'SQLTERMINATOR', TRUE)`);
+	return execute(`BEGIN
+		DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM,'SQLTERMINATOR', TRUE);
+	END;`);
 }
 
 const getDDL = async (tableName, schema, logger) => {
@@ -548,12 +550,12 @@ const getDDL = async (tableName, schema, logger) => {
 				: '';
 			const columnComments = _.map(queryObj.columnComments, 
 				c => `COMMENT ON COLUMN ${escapeName(schema)}.${escapeName(tableName)}.${escapeName(c.name)}  IS ${escapeComment(c.comment)};`);
-			const ddl = `${queryObj.tableDDL};
-				${_.join(queryObj.indexDDLs, ';\n')};
+			const ddl = `${queryObj.tableDDL}
+				${_.join(queryObj.indexDDLs, '\n')}
 				${tableComment}\n
 				${_.join(columnComments, '\n')}`;
 			return {
-				ddl: ddl.replaceAll(/[;]{2,}/g, ';'),
+				ddl: ddl,
 				jsonColumns: queryObj.jsonColumns,
 				countOfRecords: queryObj.countOfRecords,
 			};
