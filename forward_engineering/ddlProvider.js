@@ -58,7 +58,7 @@ module.exports = (baseProvider, options, app) => {
         assignTemplates,
     });
 
-    const { getUserDefinedType } = require('./helpers/udtHelper')({
+    const { getUserDefinedType, isNotPlainType } = require('./helpers/udtHelper')({
         _,
         commentIfDeactivated,
         assignTemplates,
@@ -110,7 +110,7 @@ module.exports = (baseProvider, options, app) => {
             return schemaStatement;
         },
 
-        hydrateColumn({ columnDefinition, jsonSchema, schemaData }) {
+        hydrateColumn({ columnDefinition, jsonSchema, schemaData, definitionJsonSchema = {} }) {
             const dbVersion = schemaData.dbVersion;
             const type = jsonSchema.$ref ? columnDefinition.type : _.toUpper(jsonSchema.mode || jsonSchema.type);
             return {
@@ -125,7 +125,7 @@ module.exports = (baseProvider, options, app) => {
                 uniqueKeyOptions: jsonSchema.uniqueKeyOptions,
                 nullable: columnDefinition.nullable,
                 default: columnDefinition.default,
-                comment: jsonSchema.description,
+                comment: jsonSchema.refDescription || jsonSchema.description || definitionJsonSchema.description,
                 isActivated: columnDefinition.isActivated,
                 scale: columnDefinition.scale,
                 precision: columnDefinition.precision,
@@ -142,6 +142,15 @@ module.exports = (baseProvider, options, app) => {
                 encryption: jsonSchema.encryption,
                 identity: jsonSchema.identity,
             };
+        },
+
+        hydrateJsonSchemaColumn(jsonSchema, definitionJsonSchema) {
+            if (!jsonSchema.$ref || _.isEmpty(definitionJsonSchema) || isNotPlainType(definitionJsonSchema)) {
+                return jsonSchema;
+            }
+
+            jsonSchema = _.omit(jsonSchema, '$ref');
+            return  { ...definitionJsonSchema, ...jsonSchema };
         },
 
         convertColumnDefinition(columnDefinition, template = templates.columnDefinition) {
