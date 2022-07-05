@@ -494,8 +494,15 @@ const splitEntityNames = names => {
 	return { views: namesByCategory[0].map(name => name.slice(0, -4)), tables: namesByCategory[1] };
 };
 
+const setSQLTerminator = () => {
+	return execute(`BEGIN
+		DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM,'SQLTERMINATOR', TRUE);
+	END;`);
+}
+
 const getDDL = async (tableName, schema, logger) => {
 	try {
+		await setSQLTerminator();
 		const queryResult = await execute(`
 			SELECT JSON_OBJECT(
 			'tableDDL' VALUE DBMS_METADATA.GET_DDL('TABLE', T.TABLE_NAME, T.OWNER),
@@ -543,11 +550,12 @@ const getDDL = async (tableName, schema, logger) => {
 				: '';
 			const columnComments = _.map(queryObj.columnComments, 
 				c => `COMMENT ON COLUMN ${escapeName(schema)}.${escapeName(tableName)}.${escapeName(c.name)}  IS ${escapeComment(c.comment)};`);
-			return {
-				ddl: `${queryObj.tableDDL};
-				${_.join(queryObj.indexDDLs, ';\n')};
+			const ddl = `${queryObj.tableDDL}
+				${_.join(queryObj.indexDDLs, '\n')}
 				${tableComment}\n
-				${_.join(columnComments, '\n')}`,
+				${_.join(columnComments, '\n')}`;
+			return {
+				ddl: ddl,
 				jsonColumns: queryObj.jsonColumns,
 				countOfRecords: queryObj.countOfRecords,
 			};

@@ -67,7 +67,7 @@ module.exports = ({
                 return `${startWith}${incrementBy}${cache}`;
             };
 
-            return ` GENERATED ${getGenerated(identity)} AS IDENTITY (${_.trim(getOptions(identity))})`;
+            return ` GENERATED${getGenerated(identity)} AS IDENTITY (${_.trim(getOptions(identity))})`;
         } else if (defaultValue) {
             return ` DEFAULT ${defaultValue}`;
         }
