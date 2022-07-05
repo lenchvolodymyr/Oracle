@@ -494,8 +494,13 @@ const splitEntityNames = names => {
 	return { views: namesByCategory[0].map(name => name.slice(0, -4)), tables: namesByCategory[1] };
 };
 
+const setSQLTerminator = () => {
+	return execute(`EXECUTE DBMS_METADATA.SET_TRANSFORM_PARAM(DBMS_METADATA.SESSION_TRANSFORM,'SQLTERMINATOR', TRUE)`);
+}
+
 const getDDL = async (tableName, schema, logger) => {
 	try {
+		await setSQLTerminator();
 		const queryResult = await execute(`
 			SELECT JSON_OBJECT(
 			'tableDDL' VALUE DBMS_METADATA.GET_DDL('TABLE', T.TABLE_NAME, T.OWNER),
