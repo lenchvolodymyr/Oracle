@@ -701,9 +701,10 @@ const getJsonSchema = async (jsonColumns, records) => {
 
 const getViewDDL = async (viewName, logger) => {
 	try {
+		await setSQLTerminator();
 		const queryResult = await execute(`SELECT DBMS_METADATA.GET_DDL('VIEW', VIEW_NAME, OWNER) FROM ALL_VIEWS WHERE VIEW_NAME='${viewName}'`);
-
-		return `${(await _.first(_.first(queryResult)).getData())};`;
+		const viewDDL = await _.first(_.first(queryResult)).getData();
+		return viewDDL;
 	} catch (err) {
 		logger.log('error', {
 			message: 'Cannot get DDL for view: ' + viewName,
