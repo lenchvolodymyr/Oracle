@@ -38,7 +38,8 @@
             "relationships": {
                 "compositeRelationships": true
             },
-            "enableFetchSystemEntitiesCheckbox": true
+            "enableFetchSystemEntitiesCheckbox": true,
+            "discoverRelationships": true
         }
     },
     "description": "Hackolade plugin for Oracle and Autonomous databases",
